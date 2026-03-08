@@ -1,0 +1,32 @@
+{
+  "name": "webhook-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/app.js",
+    "dev": "npx tsc && node dist/app.js",
+    "prettier_check": "npx prettier . --check",
+    "prettier_write": "npx prettier . --write",
+    "lint": "npx prettier . --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.5",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0",
+    "jiti": "^2.6.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "prettier": "^3.8.1"
+  }
+}
