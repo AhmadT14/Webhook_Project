@@ -9,7 +9,8 @@
     "dev": "npx tsc && node dist/app.js",
     "prettier_check": "npx prettier . --check",
     "prettier_write": "npx prettier . --write",
-    "lint": "npx prettier . --write"
+    "generate": "npx drizzle-kit generate",
+    "migrate": "npx drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +34,7 @@
     "drizzle-orm": "^0.45.1",
     "express": "^5.2.1",
     "pg": "^8.20.0",
+    "postgres": "^3.4.8",
     "prettier": "^3.8.1"
   }
 }
