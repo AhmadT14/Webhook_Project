@@ -1,4 +1,4 @@
-import { pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, integer } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 
 export const pipelinesTable = pgTable("pipelines", {
@@ -7,4 +7,14 @@ export const pipelinesTable = pgTable("pipelines", {
   actions: text("actions").notNull(),
   created_at: timestamp().notNull().defaultNow(),
   updated_at: timestamp().notNull().defaultNow(),
+});
+
+export const jobsTable = pgTable("jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  payload: text("payload").notNull(),
+  status: text("status").notNull().default("queued"),
+  created_at: timestamp().notNull().defaultNow(),
+  last_retry: timestamp().notNull().defaultNow(),
+  attempts: integer("attempts").default(0),
+  piupeline_id: uuid("piupeline_id").references(() => pipelinesTable.id)
 });

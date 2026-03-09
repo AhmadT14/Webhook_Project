@@ -11,11 +11,11 @@ const pipelineRouter = express.Router();
 pipelineRouter.get("/", async (req: Request, res: Response) => {
   try {
     const pipelines = await getAllPipelines();
-    if (pipelines) {
+    if (!pipelines) {
       console.error("No Pipelines in system");
       return;
     }
-    res.send(pipelines);
+    res.status(200).send(pipelines);
   } catch (err) {
     console.log(err);
   }
@@ -25,11 +25,11 @@ pipelineRouter.get("/:id", async (req: Request, res: Response) => {
   try {
     const pipelineId = req.params.id[0];
     const pipeline = await getPipelineById(pipelineId);
-    if (pipeline) {
+    if (!pipeline) {
       console.error("Pipeline not found");
       return;
     }
-    res.send(pipeline);
+    res.status(200).send(pipeline);
   } catch (err) {
     console.log(err);
   }
@@ -42,9 +42,8 @@ pipelineRouter.post("/", async (req: Request, res: Response) => {
   };
   try {
     const pipelineData: PipelineData = req.body;
-    console.log(req.params.pipelineId);
     const pipeline = await createPipeline(pipelineData);
-    res.send(pipeline);
+    res.status(201).send(pipeline);
   } catch (err) {
     console.log(err);
   }
@@ -62,7 +61,7 @@ pipelineRouter.delete("/:id", async (req: Request, res: Response) => {
   try {
     const pipelineId = req.params.id[0];
     const pipeline = await deletePipelineById(pipelineId);
-    res.send(pipeline);
+    res.status(200).send(pipeline);
   } catch (err) {
     console.log(err);
   }
