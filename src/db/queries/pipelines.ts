@@ -1,6 +1,7 @@
 import { db } from "../index.js";
 import { eq } from "drizzle-orm";
 import { pipelinesTable } from "../schema.js";
+
 export async function getAllPipelines() {
   const result = await db.select().from(pipelinesTable);
   return result;

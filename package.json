@@ -10,7 +10,8 @@
     "prettier_check": "npx prettier . --check",
     "prettier_write": "npx prettier . --write",
     "generate": "npx drizzle-kit generate",
-    "migrate": "npx drizzle-kit migrate"
+    "migrate": "npx drizzle-kit migrate",
+    "lint": "npx eslint ."
   },
   "keywords": [],
   "author": "",
