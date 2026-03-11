@@ -1,11 +1,13 @@
 import express, { Request, Response } from "express";
 import "dotenv/config";
 import { pipelineRouter } from "./api/pipelines.js";
+import { subscriberRouter } from "./api/subscribers.js";
 import { webhookUrlPath, webhookHandler } from "./api/webhookAPIHandle.js";
 
 const app = express();
 const port = 3000;
 app.use("/pipelines", pipelineRouter);
+app.use("/pipelines/:pipelineId/subscribers", subscriberRouter);
 app.post(webhookUrlPath, webhookHandler);
 
 app.get("/", (req: Request, res: Response) => {
