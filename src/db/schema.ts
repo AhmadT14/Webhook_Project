@@ -15,6 +15,7 @@ export const jobsTable = pgTable("jobs", {
   status: text("status").notNull().default("queued"),
   created_at: timestamp().notNull().defaultNow(),
   last_retry: timestamp().notNull().defaultNow(),
+  sent_at: timestamp(),
   attempts: integer("attempts").default(0),
   pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id),
 });

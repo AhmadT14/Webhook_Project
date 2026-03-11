@@ -1,11 +1,20 @@
-import { returnQueuedjob, changeStatus } from "./db/queries/jobs.js";
+import {
+  ActionsResultPayload,
+  gradesAverage,
+  gradesMax,
+  gradesMin,
+  gradesSum,
+  actions,
+} from "./actions.js";
+import { returnQueuedjob, changeStatus, sent } from "./db/queries/jobs.js";
 import { getPipelineById } from "./db/queries/pipelines.js";
-import { getSubscribersUrlsbyPipelineId } from "./db/queries/subscribers.js";
+import { getSubscribersUrlsByPipelineId } from "./db/queries/subscribers.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-type Payload = {
-  order_id: string;
-  items: { item: string; price: number };
+export type Payload = {
+  student: string;
+  subject: string;
+  grades: number[];
 };
 
 export async function worker() {
@@ -22,36 +31,46 @@ export async function worker() {
       const pipeline = await getPipelineById(pipelineId!);
       const actions = pipeline.actions;
       await changeStatus("processing", job.id);
-      const processedPayload: string = await processing(payload, actions);
+      const processedPayload = await payloadBuilder(payload, actions);
       const res = await subscribersForwarding(processedPayload, pipelineId!);
       if (res) {
         await changeStatus("sent", job.id);
-      } else await changeStatus("failed", job.id);
+        await sent(job.id);
+      } else {
+        //To Do
+      }
     } catch (err) {
       console.log(err);
     }
   }
 }
 
-export async function processing(payload: Payload, actions: string) :Promise<string> {
-  switch (actions) {
-    case "action1":
-      return ""
-    case "action2":
-      return ""
-    case "action3":
-      return ""
+export async function processing(
+  payload: Payload,
+  action: string,
+): Promise<number | void> {
+  if (!(action in actions)) {
+    return;
   }
-  return ""
+  switch (action) {
+    case "average":
+      return gradesAverage(payload);
+    case "sum":
+      return gradesSum(payload);
+    case "max":
+      return gradesMax(payload);
+    case "min":
+      return gradesMin(payload);
+  }
 }
 
 export async function subscribersForwarding(
-  processedPayload: string,
+  processedPayload: ActionsResultPayload,
   pipelineId: string,
 ) {
   try {
-    const urls = await getSubscribersUrlsbyPipelineId(pipelineId);
-    for(const url of urls) {
+    const urls = await getSubscribersUrlsByPipelineId(pipelineId);
+    for (const url of urls) {
       const response = await fetch(url.url, {
         method: "POST",
         body: JSON.stringify(processedPayload),
@@ -61,4 +80,12 @@ export async function subscribersForwarding(
   } catch (error) {
     console.error(error);
   }
+}
+
+async function payloadBuilder(
+  payload: Payload,
+  actions: string,
+): Promise<ActionsResultPayload> {
+  const answer = await processing(payload, actions);
+  return { student: payload.student, result: answer! };
 }

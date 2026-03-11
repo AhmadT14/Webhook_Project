@@ -49,14 +49,6 @@ pipelineRouter.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// pipelineRouter.put("/:id", (req:Request, res:Response) => {
-//   try{
-//   }
-//   catch(err){
-//     console.log(err)
-//   }
-// });
-
 pipelineRouter.delete("/:id", async (req: Request, res: Response) => {
   try {
     const pipelineId = req.params.id[0];
