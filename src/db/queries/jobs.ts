@@ -32,3 +32,19 @@ export async function sent(jobId: string) {
     .set({ attempts: sql`${jobsTable.attempts} + 1`, sent_at: sql`NOW()` })
     .where(eq(jobsTable.id, jobId));
 }
+
+  export async function retry(jobId: string) {
+  await db
+    .update(jobsTable)
+    .set({ attempts: sql`${jobsTable.attempts} + 1`,last_retry: sql`NOW()` })
+    .where(eq(jobsTable.id, jobId));
+}
+
+export async function returnAttemptsount(jobId: string) {
+ const [result]= await db
+    .select({
+          attempts: jobsTable.attempts,
+        }).from(jobsTable)
+    .where(eq(jobsTable.id, jobId));
+    return result
+}

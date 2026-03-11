@@ -6,7 +6,7 @@ import {
   gradesSum,
   actions,
 } from "./actions.js";
-import { returnQueuedjob, changeStatus, sent } from "./db/queries/jobs.js";
+import { returnQueuedjob, changeStatus, sent, retry, returnAttemptsount } from "./db/queries/jobs.js";
 import { getPipelineById } from "./db/queries/pipelines.js";
 import { getSubscribersUrlsByPipelineId } from "./db/queries/subscribers.js";
 
@@ -37,7 +37,14 @@ export async function worker() {
         await changeStatus("sent", job.id);
         await sent(job.id);
       } else {
-        //To Do
+        const attempts=await returnAttemptsount(job.id)
+        if(attempts.attempts!>5)
+        {
+          await changeStatus("failed", job.id);
+          return
+        }
+        await changeStatus("queued", job.id);
+        await retry(job.id);
       }
     } catch (err) {
       console.log(err);
