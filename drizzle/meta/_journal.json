@@ -15,6 +15,13 @@
       "when": 1773084742456,
       "tag": "0001_chubby_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773169147105,
+      "tag": "0002_dry_storm",
+      "breakpoints": true
     }
   ]
 }

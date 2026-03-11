@@ -16,5 +16,13 @@ export const jobsTable = pgTable("jobs", {
   created_at: timestamp().notNull().defaultNow(),
   last_retry: timestamp().notNull().defaultNow(),
   attempts: integer("attempts").default(0),
-  piupeline_id: uuid("piupeline_id").references(() => pipelinesTable.id)
+  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id),
+});
+
+export const subscribersTable = pgTable("subscribers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  url: text("url").notNull(),
+  name: text("name").notNull(),
+  created_at: timestamp().notNull().defaultNow(),
+  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id),
 });
