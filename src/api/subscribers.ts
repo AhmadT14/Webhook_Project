@@ -1,68 +1,101 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import {
   getAllSubscribers,
   getSubscriberById,
   createSubscriber,
   deleteSubscriberById,
 } from "../db/queries/subscribers.js";
+import { BadRequestError, NotFoundError } from "src/errors.js";
+import { getPipelineById } from "src/db/queries/pipelines.js";
 
 const subscriberRouter = express.Router();
 
-subscriberRouter.get("/", async (req: Request, res: Response) => {
-  try {
-    const pipelines = await getAllSubscribers();
-    if (!pipelines) {
-      console.error("No Pipelines in system");
-      return;
+subscriberRouter.get(
+  "/",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const subscribers = await getAllSubscribers();
+      res.status(200).send(subscribers);
+    } catch (err) {
+      next(err);
     }
-    res.status(200).send(pipelines);
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
-subscriberRouter.get("/:id", async (req: Request, res: Response) => {
-  try {
-    const subscriberId = req.params.id[0];
-    const subscriber = await getSubscriberById(subscriberId);
-    if (!subscriber) {
-      console.error("Subscriber not found");
-      return;
+subscriberRouter.get(
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const subscriberId = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      if (!subscriberId) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const subscriber = await getSubscriberById(subscriberId);
+      if (!subscriber) {
+        throw new NotFoundError("Subscriber Not Found!");
+      }
+      res.status(200).send(subscriber);
+    } catch (err) {
+      next(err);
     }
-    res.status(200).send(subscriber);
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
-subscriberRouter.post("/", async (req: Request, res: Response) => {
-  type SubscriberData = {
-    name: string;
-    pipeline_id: string;
-    url: string;
-  };
-  try {
-    const pipelineId = req.params.pipeline_id[0];
-    const SubscriberData: SubscriberData = {
-      name: req.body.name,
-      url: req.body.url,
-      pipeline_id: pipelineId,
+subscriberRouter.post(
+  "/",
+  async (req: Request, res: Response, next: NextFunction) => {
+    type SubscriberData = {
+      name: string;
+      pipeline_id: string;
+      url: string;
     };
-    const subscriber = await createSubscriber(SubscriberData);
-    res.status(201).send(subscriber);
-  } catch (err) {
-    console.log(err);
-  }
-});
+    try {
+      const pipelineId = Array.isArray(req.params.pipelineId)
+        ? req.params.pipelineId[0]
+        : req.params.pipelineId;
 
-subscriberRouter.delete("/:id", async (req: Request, res: Response) => {
-  try {
-    const subscriberId = req.params.id[0];
-    const subscriber = await deleteSubscriberById(subscriberId);
-    res.status(200).send(subscriber);
-  } catch (err) {
-    console.log(err);
-  }
-});
+      if (!req.body.name || !pipelineId || !req.body.url) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const pipeline = await getPipelineById(pipelineId);
+      if (!pipeline) {
+        throw new NotFoundError("Pipeline not found");
+      }
+      const SubscriberData: SubscriberData = {
+        name: req.body.name,
+        url: req.body.url,
+        pipeline_id: pipelineId,
+      };
+      const subscriber = await createSubscriber(SubscriberData);
+      res.status(201).send(subscriber);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+subscriberRouter.delete(
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const subscriberId = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      if (!subscriberId) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const existing = await getSubscriberById(subscriberId);
+      if (!existing) {
+        throw new NotFoundError("Pipeline not found");
+      }
+      const subscriber = await deleteSubscriberById(subscriberId);
+      res.status(200).send(subscriber);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 export { subscriberRouter };

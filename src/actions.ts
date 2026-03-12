@@ -23,10 +23,10 @@ export async function gradesSum(payload: Payload) {
 
 export async function gradesMax(payload: Payload) {
   const grades: number[] = payload.grades;
-  return Math.min(...grades);
+  return Math.max(...grades);
 }
 
 export async function gradesMin(payload: Payload) {
   const grades: number[] = payload.grades;
-  return Math.max(...grades);
+  return Math.min(...grades);
 }

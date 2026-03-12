@@ -6,9 +6,16 @@ import {
   gradesSum,
   actions,
 } from "./actions.js";
-import { returnQueuedjob, changeStatus, sent, retry, returnAttemptsount } from "./db/queries/jobs.js";
+import {
+  returnQueuedjob,
+  changeStatus,
+  sent,
+  retry,
+  returnAttemptsount,
+} from "./db/queries/jobs.js";
 import { getPipelineById } from "./db/queries/pipelines.js";
 import { getSubscribersUrlsByPipelineId } from "./db/queries/subscribers.js";
+import { BadRequestError } from "./errors.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export type Payload = {
@@ -27,27 +34,48 @@ export async function worker() {
     }
     try {
       const payload: Payload = JSON.parse(job.payload);
+      if (!payload.student || !payload.subject || !payload.grades) {
+        throw new BadRequestError("Invalid Format");
+      }
       const pipelineId = job.pipeline_id;
       const pipeline = await getPipelineById(pipelineId!);
+      if (!pipeline) {
+        await changeStatus("failed", job.id);
+        console.error(`Pipeline ${pipelineId} not found for job ${job.id}`);
+        continue;
+      }
       const actions = pipeline.actions;
+      if (!pipeline.actions) {
+        await changeStatus("failed", job.id);
+        console.error(`Pipeline ${pipelineId} has no actions`);
+        continue;
+      }
       await changeStatus("processing", job.id);
       const processedPayload = await payloadBuilder(payload, actions);
-      const res = await subscribersForwarding(processedPayload, pipelineId!);
-      if (res) {
+      const responses = await subscribersForwarding(
+        processedPayload,
+        pipelineId!,
+      );
+      const allSucceeded = responses.every((r) => r === true);
+      if (allSucceeded) {
         await changeStatus("sent", job.id);
         await sent(job.id);
       } else {
-        const attempts=await returnAttemptsount(job.id)
-        if(attempts.attempts!>5)
-        {
-          await changeStatus("failed", job.id);
-          return
-        }
-        await changeStatus("queued", job.id);
-        await retry(job.id);
+        throw new Error("Some subscribers failed to receive message");
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.error(`Job ${job.id} error:`, error);
+      if (error instanceof BadRequestError) {
+        await changeStatus("failed", job.id);
+      } else {
+        const attempts = await returnAttemptsount(job.id);
+        if (attempts.attempts! > 5) {
+          await changeStatus("failed", job.id);
+        } else {
+          await changeStatus("queued", job.id);
+          await retry(job.id);
+        }
+      }
     }
   }
 }
@@ -57,7 +85,7 @@ export async function processing(
   action: string,
 ): Promise<number | void> {
   if (!(action in actions)) {
-    return;
+    throw new BadRequestError(`Invalid action: ${action}`);
   }
   switch (action) {
     case "average":
@@ -74,19 +102,24 @@ export async function processing(
 export async function subscribersForwarding(
   processedPayload: ActionsResultPayload,
   pipelineId: string,
-) {
-  try {
-    const urls = await getSubscribersUrlsByPipelineId(pipelineId);
-    for (const url of urls) {
+): Promise<boolean[]> {
+  const urls = await getSubscribersUrlsByPipelineId(pipelineId);
+  const responses: boolean[] = [];
+
+  for (const url of urls) {
+    try {
       const response = await fetch(url.url, {
         method: "POST",
         body: JSON.stringify(processedPayload),
       });
-      return response.ok;
+      responses.push(response.ok);
+    } catch (err) {
+      console.error(`Failed to forward to ${url.url}:`, err);
+      responses.push(false);
     }
-  } catch (error) {
-    console.error(error);
   }
+
+  return responses;
 }
 
 async function payloadBuilder(
@@ -96,3 +129,5 @@ async function payloadBuilder(
   const answer = await processing(payload, actions);
   return { student: payload.student, result: answer! };
 }
+
+await worker();

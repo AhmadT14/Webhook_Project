@@ -33,18 +33,19 @@ export async function sent(jobId: string) {
     .where(eq(jobsTable.id, jobId));
 }
 
-  export async function retry(jobId: string) {
+export async function retry(jobId: string) {
   await db
     .update(jobsTable)
-    .set({ attempts: sql`${jobsTable.attempts} + 1`,last_retry: sql`NOW()` })
+    .set({ attempts: sql`${jobsTable.attempts} + 1`, last_retry: sql`NOW()` })
     .where(eq(jobsTable.id, jobId));
 }
 
 export async function returnAttemptsount(jobId: string) {
- const [result]= await db
+  const [result] = await db
     .select({
-          attempts: jobsTable.attempts,
-        }).from(jobsTable)
+      attempts: jobsTable.attempts,
+    })
+    .from(jobsTable)
     .where(eq(jobsTable.id, jobId));
-    return result
+  return result;
 }

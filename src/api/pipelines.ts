@@ -1,62 +1,87 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import {
   getAllPipelines,
   getPipelineById,
   createPipeline,
   deletePipelineById,
 } from "../db/queries/pipelines.js";
+import { BadRequestError, NotFoundError } from "src/errors.js";
 
 const pipelineRouter = express.Router();
 
-pipelineRouter.get("/", async (req: Request, res: Response) => {
-  try {
-    const pipelines = await getAllPipelines();
-    if (!pipelines) {
-      console.error("No Pipelines in system");
-      return;
+pipelineRouter.get(
+  "/",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const pipelines = await getAllPipelines();
+      res.status(200).send(pipelines);
+    } catch (err) {
+      next(err);
     }
-    res.status(200).send(pipelines);
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
-pipelineRouter.get("/:id", async (req: Request, res: Response) => {
-  try {
-    const pipelineId = req.params.id[0];
-    const pipeline = await getPipelineById(pipelineId);
-    if (!pipeline) {
-      console.error("Pipeline not found");
-      return;
+pipelineRouter.get(
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const pipelineId = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      if (!pipelineId) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const pipeline = await getPipelineById(pipelineId);
+      if (!pipeline) {
+        throw new NotFoundError("Pipeline Not Found!");
+      }
+      res.status(200).send(pipeline);
+    } catch (err) {
+      next(err);
     }
-    res.status(200).send(pipeline);
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
-pipelineRouter.post("/", async (req: Request, res: Response) => {
-  type PipelineData = {
-    name: string;
-    actions: string;
-  };
-  try {
-    const pipelineData: PipelineData = req.body;
-    const pipeline = await createPipeline(pipelineData);
-    res.status(201).send(pipeline);
-  } catch (err) {
-    console.log(err);
-  }
-});
+pipelineRouter.post(
+  "/",
+  async (req: Request, res: Response, next: NextFunction) => {
+    type PipelineData = {
+      name: string;
+      actions: string;
+    };
+    try {
+      if (!req.body.name || !req.body.actions) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const pipelineData: PipelineData = req.body;
+      const pipeline = await createPipeline(pipelineData);
+      res.status(201).send(pipeline);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-pipelineRouter.delete("/:id", async (req: Request, res: Response) => {
-  try {
-    const pipelineId = req.params.id[0];
-    const pipeline = await deletePipelineById(pipelineId);
-    res.status(200).send(pipeline);
-  } catch (err) {
-    console.log(err);
-  }
-});
+pipelineRouter.delete(
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const pipelineId = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      if (!pipelineId) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const existing = await getPipelineById(pipelineId);
+      if (!existing) {
+        throw new NotFoundError("Pipeline not found");
+      }
+      await deletePipelineById(pipelineId);
+      res.status(200).send({ message: "Pipeline deleted" });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 export { pipelineRouter };

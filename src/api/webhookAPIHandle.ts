@@ -1,22 +1,38 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import { createJob } from "../db/queries/jobs.js";
+import { BadRequestError, NotFoundError } from "src/errors.js";
+import { getPipelineById } from "src/db/queries/pipelines.js";
 
 export const webhookUrlPath = "/webhook/:pipelineId";
 
-export async function webhookHandler(req: Request, res: Response) {
+export async function webhookHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const id = req.params.pipelineId[0];
+    const id = Array.isArray(req.params.pipelineId)
+      ? req.params.pipelineId[0]
+      : req.params.pipelineId;
+    if (!id) {
+      throw new BadRequestError("Invalid Format");
+    }
+    if (!req.body) {
+      throw new BadRequestError("Invalid Format");
+    }
     const data = req.body;
+    const pipeline = await getPipelineById(id);
+    if (!pipeline) {
+      throw new NotFoundError("Pipeline not found");
+    }
+
     const job = await createJob({
       pipeline_id: id,
       payload: JSON.stringify(data),
     });
-    if (!job) {
-      throw new Error();
-    }
-    res.status(200).send(job);
+    res.status(201).send(job);
   } catch (err) {
-    console.log(err);
+    next(err);
   }
 }
