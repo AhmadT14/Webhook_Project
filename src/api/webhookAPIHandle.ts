@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import { createJob } from "../db/queries/jobs.js";
-import { BadRequestError, NotFoundError } from "src/errors.js";
-import { getPipelineById } from "src/db/queries/pipelines.js";
+import { BadRequestError, NotFoundError } from "../errors.js";
+import { getPipelineById } from "../db/queries/pipelines.js";
 
 export const webhookUrlPath = "/webhook/:pipelineId";
 

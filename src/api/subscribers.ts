@@ -5,8 +5,8 @@ import {
   createSubscriber,
   deleteSubscriberById,
 } from "../db/queries/subscribers.js";
-import { BadRequestError, NotFoundError } from "src/errors.js";
-import { getPipelineById } from "src/db/queries/pipelines.js";
+import { BadRequestError, NotFoundError } from "../errors.js";
+import { getPipelineById } from "../db/queries/pipelines.js";
 
 const subscriberRouter = express.Router();
 
@@ -88,7 +88,7 @@ subscriberRouter.delete(
       }
       const existing = await getSubscriberById(subscriberId);
       if (!existing) {
-        throw new NotFoundError("Pipeline not found");
+        throw new NotFoundError("Subscriber not found");
       }
       const subscriber = await deleteSubscriberById(subscriberId);
       res.status(200).send(subscriber);

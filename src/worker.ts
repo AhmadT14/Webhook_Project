@@ -4,7 +4,7 @@ import {
   gradesMax,
   gradesMin,
   gradesSum,
-  actions,
+  Actions,
 } from "./actions.js";
 import {
   returnQueuedjob,
@@ -13,10 +13,10 @@ import {
   jobRetry,
   jobAttemptsCount,
 } from "./db/queries/jobs.js";
-import { addToHistory } from "./db/queries/jobsHistory.js";
 import { getPipelineById } from "./db/queries/pipelines.js";
-import { getSubscriberById, getSubscriberByURL, getSubscribersUrlsByPipelineId } from "./db/queries/subscribers.js";
 import { BadRequestError } from "./errors.js";
+import { getSubscribersByPipelineId } from "./db/queries/subscribers.js";
+import { subscribersForwarding } from "./subscriberForwarding.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export type Payload = {
@@ -53,10 +53,15 @@ export async function worker() {
       }
       await changeJobStatus("processing", job.id);
       const processedPayload = await payloadBuilder(payload, actions);
+      const subscribers = await getSubscribersByPipelineId(pipelineId!);
+      if (subscribers.length === 0) {
+        await changeJobStatus("no_subscribers", job.id);
+        continue;
+      }
       const responses = await subscribersForwarding(
         processedPayload,
-        pipelineId!,
         job.id,
+        subscribers,
       );
       const allSucceeded = responses.every((r) => r === true);
       if (allSucceeded) {
@@ -86,7 +91,7 @@ export async function processing(
   payload: Payload,
   action: string,
 ): Promise<number | void> {
-  if (!(action in actions)) {
+  if (!Actions.includes(action)) {
     throw new BadRequestError(`Invalid action: ${action}`);
   }
   switch (action) {
@@ -99,42 +104,6 @@ export async function processing(
     case "min":
       return gradesMin(payload);
   }
-}
-
-export async function subscribersForwarding(
-  processedPayload: ActionsResultPayload,
-  pipelineId: string,
-  jobId: string,
-): Promise<boolean[]> {
-  const urls = await getSubscribersUrlsByPipelineId(pipelineId);//------test
-  const responses: boolean[] = [];
-
-  for (const url of urls) {
-    try {
-      const response = await fetch(url.url, {
-        method: "POST",
-        body: JSON.stringify(processedPayload),
-      });
-      const subscriber = await getSubscriberByURL(url.url);
-      await addToHistory({
-        job_id: jobId,
-        subscriber_id: subscriber.id,
-        subscriber_attempt_status: "sent",
-        attemptNo:(await jobAttemptsCount(jobId)).attempts!+1
-      });
-      responses.push(response.ok);
-    } catch (err) {
-      const subscriber = await getSubscriberByURL(url.url);
-      await addToHistory({
-        job_id: jobId,
-        subscriber_id: subscriber.id,
-        attemptNo:(await jobAttemptsCount(jobId)).attempts!+1
-      });
-      console.error(`Failed to forward to ${url.url}:`, err);
-      responses.push(false);
-    }
-  }
-  return responses;
 }
 
 async function payloadBuilder(

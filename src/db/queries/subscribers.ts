@@ -1,14 +1,12 @@
 import { db } from "../index.js";
 import { eq } from "drizzle-orm";
-import { pipelinesTable, subscribersTable } from "../schema.js";
+import { subscribersTable } from "../schema.js";
 
-export async function getSubscribersUrlsByPipelineId(pipelineId: string) {
+export async function getSubscribersByPipelineId(pipelineId: string) {
   const result = await db
-    .select({
-      url: subscribersTable.url,
-    })
+    .select()
     .from(subscribersTable)
-    .where(eq(pipelinesTable.id, pipelineId));
+    .where(eq(subscribersTable.pipeline_id, pipelineId));
   return result;
 }
 

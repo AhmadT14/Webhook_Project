@@ -1,7 +1,7 @@
 import { Payload } from "./worker.js";
 
 export type ActionsResultPayload = { student: string; result: number };
-export const actions = ["average", "sum", "max", "min"];
+export const Actions = ["average", "sum", "max", "min"];
 
 export async function gradesAverage(payload: Payload) {
   const grades: number[] = payload.grades;

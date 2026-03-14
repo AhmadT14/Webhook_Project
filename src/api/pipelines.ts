@@ -5,7 +5,7 @@ import {
   createPipeline,
   deletePipelineById,
 } from "../db/queries/pipelines.js";
-import { BadRequestError, NotFoundError } from "src/errors.js";
+import { BadRequestError, NotFoundError } from "../errors.js";
 
 const pipelineRouter = express.Router();
 

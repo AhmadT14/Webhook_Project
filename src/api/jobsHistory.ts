@@ -6,9 +6,9 @@ import {
   getJobStatus,
   getJobStatusById,
 } from "../db/queries/jobsHistory.js";
-import { BadRequestError, NotFoundError } from "src/errors.js";
+import { BadRequestError, NotFoundError } from "../errors.js";
 
-const historyRouter = express.Router();
+export const historyRouter = express.Router();
 
 historyRouter.get(
   "/deliveryAttempts",
@@ -44,15 +44,9 @@ historyRouter.get(
 );
 
 historyRouter.get(
-  "/jobs",
+  "/",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const jobId = Array.isArray(req.params.jobId)
-        ? req.params.jobId[0]
-        : req.params.jobId;
-      if (!jobId) {
-        throw new BadRequestError("Invalid Format");
-      }
       const jobs = await getJobStatus();
       if (!jobs) {
         throw new NotFoundError("No Jobs Found!");
@@ -65,7 +59,7 @@ historyRouter.get(
 );
 
 historyRouter.get(
-  "/jobs/:jobID",
+  "/:jobId",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const jobId = Array.isArray(req.params.jobId)
@@ -92,16 +86,10 @@ historyRouter.post(
       job_id: string;
       subscriber_id: string;
       subscriber_attempt_status?: string;
-      attemptNo:number
+      attempt_no: number;
     };
     try {
-      if (
-        !req.body.job_id ||
-        !req.body.subscriber_name ||
-        !req.body.attempt_No ||
-        !req.body.attempt_status ||
-        !req.body.attemptNo
-      ) {
+      if (!req.body.job_id || !req.body.subscriber_id || !req.body.attempt_no) {
         throw new BadRequestError("Invalid Format");
       }
       const historyData: HistoryData = req.body;
