@@ -14,33 +14,33 @@ export async function returnQueuedjob() {
   const [result] = await db
     .select()
     .from(jobsTable)
-    .where(eq(jobsTable.status, "queued"))
+    .where(eq(jobsTable.job_status, "queued"))
     .orderBy(jobsTable.last_retry);
   return result;
 }
 
-export async function changeStatus(status: string, jobId: string) {
+export async function changeJobStatus(status: string, jobId: string) {
   await db
     .update(jobsTable)
-    .set({ status: status })
+    .set({ job_status: status })
     .where(eq(jobsTable.id, jobId));
 }
 
-export async function sent(jobId: string) {
+export async function jobSent(jobId: string) {
   await db
     .update(jobsTable)
     .set({ attempts: sql`${jobsTable.attempts} + 1`, sent_at: sql`NOW()` })
     .where(eq(jobsTable.id, jobId));
 }
 
-export async function retry(jobId: string) {
+export async function jobRetry(jobId: string) {
   await db
     .update(jobsTable)
     .set({ attempts: sql`${jobsTable.attempts} + 1`, last_retry: sql`NOW()` })
     .where(eq(jobsTable.id, jobId));
 }
 
-export async function returnAttemptsount(jobId: string) {
+export async function jobAttemptsCount(jobId: string) {
   const [result] = await db
     .select({
       attempts: jobsTable.attempts,

@@ -8,13 +8,14 @@ import {
 } from "./actions.js";
 import {
   returnQueuedjob,
-  changeStatus,
-  sent,
-  retry,
-  returnAttemptsount,
+  changeJobStatus,
+  jobSent,
+  jobRetry,
+  jobAttemptsCount,
 } from "./db/queries/jobs.js";
+import { addToHistory } from "./db/queries/jobsHistory.js";
 import { getPipelineById } from "./db/queries/pipelines.js";
-import { getSubscribersUrlsByPipelineId } from "./db/queries/subscribers.js";
+import { getSubscriberById, getSubscriberByURL, getSubscribersUrlsByPipelineId } from "./db/queries/subscribers.js";
 import { BadRequestError } from "./errors.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,40 +41,41 @@ export async function worker() {
       const pipelineId = job.pipeline_id;
       const pipeline = await getPipelineById(pipelineId!);
       if (!pipeline) {
-        await changeStatus("failed", job.id);
+        await changeJobStatus("failed", job.id);
         console.error(`Pipeline ${pipelineId} not found for job ${job.id}`);
         continue;
       }
       const actions = pipeline.actions;
       if (!pipeline.actions) {
-        await changeStatus("failed", job.id);
+        await changeJobStatus("failed", job.id);
         console.error(`Pipeline ${pipelineId} has no actions`);
         continue;
       }
-      await changeStatus("processing", job.id);
+      await changeJobStatus("processing", job.id);
       const processedPayload = await payloadBuilder(payload, actions);
       const responses = await subscribersForwarding(
         processedPayload,
         pipelineId!,
+        job.id,
       );
       const allSucceeded = responses.every((r) => r === true);
       if (allSucceeded) {
-        await changeStatus("sent", job.id);
-        await sent(job.id);
+        await changeJobStatus("sent", job.id);
+        await jobSent(job.id);
       } else {
         throw new Error("Some subscribers failed to receive message");
       }
     } catch (error) {
       console.error(`Job ${job.id} error:`, error);
       if (error instanceof BadRequestError) {
-        await changeStatus("failed", job.id);
+        await changeJobStatus("failed", job.id);
       } else {
-        const attempts = await returnAttemptsount(job.id);
+        const attempts = await jobAttemptsCount(job.id);
         if (attempts.attempts! > 5) {
-          await changeStatus("failed", job.id);
+          await changeJobStatus("failed", job.id);
         } else {
-          await changeStatus("queued", job.id);
-          await retry(job.id);
+          await changeJobStatus("queued", job.id);
+          await jobRetry(job.id);
         }
       }
     }
@@ -102,8 +104,9 @@ export async function processing(
 export async function subscribersForwarding(
   processedPayload: ActionsResultPayload,
   pipelineId: string,
+  jobId: string,
 ): Promise<boolean[]> {
-  const urls = await getSubscribersUrlsByPipelineId(pipelineId);
+  const urls = await getSubscribersUrlsByPipelineId(pipelineId);//------test
   const responses: boolean[] = [];
 
   for (const url of urls) {
@@ -112,13 +115,25 @@ export async function subscribersForwarding(
         method: "POST",
         body: JSON.stringify(processedPayload),
       });
+      const subscriber = await getSubscriberByURL(url.url);
+      await addToHistory({
+        job_id: jobId,
+        subscriber_id: subscriber.id,
+        subscriber_attempt_status: "sent",
+        attemptNo:(await jobAttemptsCount(jobId)).attempts!+1
+      });
       responses.push(response.ok);
     } catch (err) {
+      const subscriber = await getSubscriberByURL(url.url);
+      await addToHistory({
+        job_id: jobId,
+        subscriber_id: subscriber.id,
+        attemptNo:(await jobAttemptsCount(jobId)).attempts!+1
+      });
       console.error(`Failed to forward to ${url.url}:`, err);
       responses.push(false);
     }
   }
-
   return responses;
 }
 

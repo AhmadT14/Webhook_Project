@@ -25,6 +25,14 @@ export async function getSubscriberById(id: string) {
   return result;
 }
 
+export async function getSubscriberByURL(url: string) {
+  const [result] = await db
+    .select()
+    .from(subscribersTable)
+    .where(eq(subscribersTable.url, url));
+  return result;
+}
+
 export async function createSubscriber(data: {
   name: string;
   pipeline_id: string;
