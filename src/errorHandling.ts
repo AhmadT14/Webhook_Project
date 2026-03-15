@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError } from "./errors";
+import { BadRequestError, NotFoundError } from "./errors.js";
 import type { Request, Response, NextFunction } from "express";
 
 export function errorHandler(

@@ -1,9 +1,9 @@
-import { ActionsResultPayload } from "./actions";
-import { jobAttemptsCount } from "./db/queries/jobs";
+import { ActionsResultPayload } from "./actions.js";
+import { jobAttemptsCount } from "./db/queries/jobs.js";
 import {
   addToHistory,
   getSubscriberStatusBySubscriberId,
-} from "./db/queries/jobsHistory";
+} from "./db/queries/jobsHistory.js";
 import { InferSelectModel } from "drizzle-orm";
 import { subscribersTable } from "./db/schema.js";
 
