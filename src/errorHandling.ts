@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError } from "./errors.js";
+import { BadRequestError, NotFoundError, UnAuthorized } from "./errors.js";
 import type { Request, Response, NextFunction } from "express";
 
 export function errorHandler(
@@ -15,6 +15,9 @@ export function errorHandler(
     message = err.message;
   } else if (err instanceof NotFoundError) {
     statusCode = 404;
+    message = err.message;
+  } else if (err instanceof UnAuthorized) {
+    statusCode = 401;
     message = err.message;
   }
   if (statusCode >= 500) {

@@ -5,13 +5,14 @@ import { subscriberRouter } from "./api/subscribers.js";
 import { historyRouter } from "./api/jobsHistory.js";
 import { webhookUrlPath, webhookHandler } from "./api/webhookAPIHandle.js";
 import { errorHandler } from "./errorHandling.js";
+import { APIKeyValidation } from "./APIKeyValidation.js";
 
 const app = express();
 const port = 3000;
 app.use(express.json());
-app.use("/pipelines", pipelineRouter);
-app.use("/pipelines/:pipelineId/subscribers", subscriberRouter);
-app.use("/jobs", historyRouter);
+app.use("/pipelines",APIKeyValidation, pipelineRouter);
+app.use("/pipelines/:pipelineId/subscribers",APIKeyValidation, subscriberRouter);
+app.use("/jobs",APIKeyValidation, historyRouter);
 app.post(webhookUrlPath, webhookHandler);
 
 app.get("/", (req: Request, res: Response) => {
