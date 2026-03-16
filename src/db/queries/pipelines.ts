@@ -16,7 +16,7 @@ export async function getPipelineById(id: string) {
 }
 
 export async function createPipeline(data: { name: string; actions: string }) {
-  const [result] = await db.insert(pipelinesTable).values(data);
+  const [result] = await db.insert(pipelinesTable).values(data).returning();
   return result;
 }
 
@@ -24,5 +24,17 @@ export async function deletePipelineById(id: string) {
   const result = await db
     .delete(pipelinesTable)
     .where(eq(pipelinesTable.id, id));
+  return result;
+}
+
+export async function updatePipelineById(
+  id: string,
+  data: Partial<{ name: string; actions: string }>,
+) {
+  const [result] = await db
+    .update(pipelinesTable)
+    .set(data)
+    .where(eq(pipelinesTable.id, id))
+    .returning();
   return result;
 }

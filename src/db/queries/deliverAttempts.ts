@@ -38,6 +38,6 @@ export async function addDeliveryAttempt(data: {
   subscriber_attempt_status?: string;
   attempt_no: number;
 }) {
-  const result = await db.insert(deliveryAttemptsTable).values(data);
+  const result = await db.insert(deliveryAttemptsTable).values(data).returning();
   return result;
 }

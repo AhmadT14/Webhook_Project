@@ -6,7 +6,7 @@ export async function createJob(data: {
   pipeline_id: string;
   payload: string;
 }) {
-  const [result] = await db.insert(jobsTable).values(data);
+  const [result] = await db.insert(jobsTable).values(data).returning();
   return result;
 }
 

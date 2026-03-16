@@ -4,6 +4,7 @@ import {
   getPipelineById,
   createPipeline,
   deletePipelineById,
+  updatePipelineById,
 } from "../db/queries/pipelines.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 
@@ -56,6 +57,32 @@ pipelineRouter.post(
       const pipelineData: PipelineData = req.body;
       const pipeline = await createPipeline(pipelineData);
       res.status(201).send(pipeline);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+pipelineRouter.put(
+  "/:pipelineId",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const pipelineID = Array.isArray(req.params.pipelineId)
+        ? req.params.pipelineId[0]
+        : req.params.pipelineId;
+      if (!pipelineID) {
+        throw new BadRequestError("Invalid Format");
+      }
+      const { name, actions } = req.body;
+      if (!name && !actions) {
+        throw new BadRequestError("Nothing to update");
+      }
+      const existing = await getPipelineById(pipelineID);
+      if (!existing) {
+        throw new NotFoundError("Pipeline not found");
+      }
+      const updated = await updatePipelineById(pipelineID, { name, actions });
+      res.status(200).send(updated);
     } catch (err) {
       next(err);
     }

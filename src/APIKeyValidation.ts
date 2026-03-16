@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { UnAuthorized } from "./errors";
+import { UnAuthorized } from "./errors.js";
 
 export function APIKeyValidation(
   req: Request,
