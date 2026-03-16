@@ -16,7 +16,9 @@ export const jobsTable = pgTable("jobs", {
   last_retry: timestamp().notNull().defaultNow(),
   sent_at: timestamp(),
   attempts: integer("attempts").default(0).notNull(),
-  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id).notNull(),
+  pipeline_id: uuid("pipeline_id")
+    .references(() => pipelinesTable.id)
+    .notNull(),
 });
 
 export const subscribersTable = pgTable("subscribers", {
@@ -29,8 +31,12 @@ export const subscribersTable = pgTable("subscribers", {
 
 export const deliveryAttemptsTable = pgTable("delivery_attempts", {
   id: uuid("id").defaultRandom().primaryKey(),
-  job_id: uuid("job_id").references(() => jobsTable.id).notNull(),
-  subscriber_id: uuid("subscriber_id").references(() => subscribersTable.id).notNull(),
+  job_id: uuid("job_id")
+    .references(() => jobsTable.id)
+    .notNull(),
+  subscriber_id: uuid("subscriber_id")
+    .references(() => subscribersTable.id)
+    .notNull(),
   attempt_no: integer("attempt_No").default(0).notNull(),
   subscriber_attempt_status: text("subscriber_attempt_status")
     .notNull()

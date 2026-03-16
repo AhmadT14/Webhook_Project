@@ -7,7 +7,7 @@ export async function getFullDeliveryAttempts() {
   return result;
 }
 
-export async function getDeliveryAttemptysByJobId(jobId: string) {
+export async function getDeliveryAttemptsByJobId(jobId: string) {
   const result = await db
     .select()
     .from(deliveryAttemptsTable)
@@ -15,7 +15,7 @@ export async function getDeliveryAttemptysByJobId(jobId: string) {
   return result;
 }
 
-export async function getDeliveryAttemptysBySubscriberId(
+export async function getDeliveryAttemptsBySubscriberId(
   jobId: string,
   subscriberId: string,
 ) {

@@ -54,26 +54,18 @@
         "delivery_attempts_job_id_jobs_id_fk": {
           "name": "delivery_attempts_job_id_jobs_id_fk",
           "tableFrom": "delivery_attempts",
-          "columnsFrom": [
-            "job_id"
-          ],
+          "columnsFrom": ["job_id"],
           "tableTo": "jobs",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "delivery_attempts_subscriber_id_subscribers_id_fk": {
           "name": "delivery_attempts_subscriber_id_subscribers_id_fk",
           "tableFrom": "delivery_attempts",
-          "columnsFrom": [
-            "subscriber_id"
-          ],
+          "columnsFrom": ["subscriber_id"],
           "tableTo": "subscribers",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -147,13 +139,9 @@
         "jobs_pipeline_id_pipelines_id_fk": {
           "name": "jobs_pipeline_id_pipelines_id_fk",
           "tableFrom": "jobs",
-          "columnsFrom": [
-            "pipeline_id"
-          ],
+          "columnsFrom": ["pipeline_id"],
           "tableTo": "pipelines",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -252,13 +240,9 @@
         "subscribers_pipeline_id_pipelines_id_fk": {
           "name": "subscribers_pipeline_id_pipelines_id_fk",
           "tableFrom": "subscribers",
-          "columnsFrom": [
-            "pipeline_id"
-          ],
+          "columnsFrom": ["pipeline_id"],
           "tableTo": "pipelines",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -267,16 +251,12 @@
       "uniqueConstraints": {
         "subscribers_url_unique": {
           "name": "subscribers_url_unique",
-          "columns": [
-            "url"
-          ],
+          "columns": ["url"],
           "nullsNotDistinct": false
         },
         "subscribers_name_unique": {
           "name": "subscribers_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "nullsNotDistinct": false
         }
       },

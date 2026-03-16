@@ -20,9 +20,7 @@ export async function returnQueuedjob() {
 }
 
 export async function getJobs() {
-  const result = await db
-    .select()
-    .from(jobsTable)
+  const result = await db.select().from(jobsTable);
   return result;
 }
 

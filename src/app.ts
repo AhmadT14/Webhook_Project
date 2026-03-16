@@ -4,14 +4,12 @@ import { pipelineRouter } from "./api/pipelines.js";
 import { subscriberRouter } from "./api/subscribers.js";
 import { jobsRouter } from "./api/jobs.js";
 import { webhookHandler } from "./api/webhookAPIHandle.js";
-import { errorHandler } from "./errorHandling.js";
+import { errorHandler } from "./errorMiddleware.js";
 import { APIKeyValidation } from "./APIKeyValidation.js";
 
 const app = express();
 const port = 3000;
-app.use(
-  express.json(),
-);
+app.use(express.json());
 app.use("/api/pipelines", APIKeyValidation, pipelineRouter);
 app.use(
   "/api/pipelines/:pipelineId/subscribers",

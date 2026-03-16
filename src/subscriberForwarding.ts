@@ -1,8 +1,8 @@
 import { ActionsResultPayload } from "./actions.js";
 import { jobAttemptsCount } from "./db/queries/jobs.js";
 import {
-  addToHistory,
-  getSubscriberStatusBySubscriberId,
+  addDeliveryAttempt,
+  getDeliveryAttemptsBySubscriberId,
 } from "./db/queries/deliverAttempts.js";
 import { InferSelectModel } from "drizzle-orm";
 import { subscribersTable } from "./db/schema.js";
@@ -17,7 +17,7 @@ export async function subscribersForwarding(
   const responses: boolean[] = [];
   for (let row = 0; row < subscribers.length; row++) {
     try {
-      const record = await getSubscriberStatusBySubscriberId(
+      const record = await getDeliveryAttemptsBySubscriberId(
         jobId,
         subscribers[row].id,
       );
@@ -29,14 +29,14 @@ export async function subscribersForwarding(
         });
         responses.push(response.ok);
         if (response.ok) {
-          await addToHistory({
+          await addDeliveryAttempt({
             job_id: jobId,
             subscriber_id: subscribers[row].id,
             subscriber_attempt_status: "sent",
             attempt_no: (await jobAttemptsCount(jobId)).attempts! + 1,
           });
         } else {
-          await addToHistory({
+          await addDeliveryAttempt({
             job_id: jobId,
             subscriber_id: subscribers[row].id,
             attempt_no: (await jobAttemptsCount(jobId)).attempts! + 1,
@@ -46,7 +46,7 @@ export async function subscribersForwarding(
         responses.push(true);
       }
     } catch (err) {
-      await addToHistory({
+      await addDeliveryAttempt({
         job_id: jobId,
         subscriber_id: subscribers[row].id,
         attempt_no: (await jobAttemptsCount(jobId)).attempts! + 1,
