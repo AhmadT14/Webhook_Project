@@ -6,7 +6,6 @@ export const pipelinesTable = pgTable("pipelines", {
   name: text("name").notNull(),
   actions: text("actions").notNull(),
   created_at: timestamp().notNull().defaultNow(),
-  updated_at: timestamp().notNull().defaultNow(),
 });
 
 export const jobsTable = pgTable("jobs", {
@@ -16,8 +15,8 @@ export const jobsTable = pgTable("jobs", {
   created_at: timestamp().notNull().defaultNow(),
   last_retry: timestamp().notNull().defaultNow(),
   sent_at: timestamp(),
-  attempts: integer("attempts").default(0),
-  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id),
+  attempts: integer("attempts").default(0).notNull(),
+  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id).notNull(),
 });
 
 export const subscribersTable = pgTable("subscribers", {
@@ -30,9 +29,9 @@ export const subscribersTable = pgTable("subscribers", {
 
 export const deliveryAttemptsTable = pgTable("delivery_attempts", {
   id: uuid("id").defaultRandom().primaryKey(),
-  job_id: uuid("job_id").references(() => jobsTable.id),
-  subscriber_id: uuid("subscriber_id").references(() => subscribersTable.id),
-  attempt_no: integer("attempt_No").default(0),
+  job_id: uuid("job_id").references(() => jobsTable.id).notNull(),
+  subscriber_id: uuid("subscriber_id").references(() => subscribersTable.id).notNull(),
+  attempt_no: integer("attempt_No").default(0).notNull(),
   subscriber_attempt_status: text("subscriber_attempt_status")
     .notNull()
     .default("failed"),
