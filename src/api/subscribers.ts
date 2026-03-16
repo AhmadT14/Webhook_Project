@@ -23,16 +23,16 @@ subscriberRouter.get(
 );
 
 subscriberRouter.get(
-  "/:id",
+  "/:subscriberId",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const subscriberId = Array.isArray(req.params.id)
-        ? req.params.id[0]
-        : req.params.id;
-      if (!subscriberId) {
+      const subscriberID = Array.isArray(req.params.subscriberId)
+        ? req.params.subscriberId[0]
+        : req.params.subscriberId;
+      if (!subscriberID) {
         throw new BadRequestError("Invalid Format");
       }
-      const subscriber = await getSubscriberById(subscriberId);
+      const subscriber = await getSubscriberById(subscriberID);
       if (!subscriber) {
         throw new NotFoundError("Subscriber Not Found!");
       }
@@ -77,20 +77,20 @@ subscriberRouter.post(
 );
 
 subscriberRouter.delete(
-  "/:id",
+  "/:subscriberId",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const subscriberId = Array.isArray(req.params.id)
-        ? req.params.id[0]
-        : req.params.id;
-      if (!subscriberId) {
+      const subscriberID = Array.isArray(req.params.subscriberId)
+        ? req.params.subscriberId[0]
+        : req.params.subscriberId;
+      if (!subscriberID) {
         throw new BadRequestError("Invalid Format");
       }
-      const existing = await getSubscriberById(subscriberId);
+      const existing = await getSubscriberById(subscriberID);
       if (!existing) {
         throw new NotFoundError("Subscriber not found");
       }
-      const subscriber = await deleteSubscriberById(subscriberId);
+      const subscriber = await deleteSubscriberById(subscriberID);
       res.status(200).send(subscriber);
     } catch (err) {
       next(err);

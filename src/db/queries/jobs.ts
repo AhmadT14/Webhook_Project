@@ -19,6 +19,21 @@ export async function returnQueuedjob() {
   return result;
 }
 
+export async function getJobs() {
+  const result = await db
+    .select()
+    .from(jobsTable)
+  return result;
+}
+
+export async function getJobsById(jobId: string) {
+  const result = await db
+    .select()
+    .from(jobsTable)
+    .where(eq(jobsTable.id, jobId));
+  return result;
+}
+
 export async function changeJobStatus(status: string, jobId: string) {
   await db
     .update(jobsTable)

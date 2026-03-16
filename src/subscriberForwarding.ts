@@ -3,7 +3,7 @@ import { jobAttemptsCount } from "./db/queries/jobs.js";
 import {
   addToHistory,
   getSubscriberStatusBySubscriberId,
-} from "./db/queries/jobsHistory.js";
+} from "./db/queries/deliverAttempts.js";
 import { InferSelectModel } from "drizzle-orm";
 import { subscribersTable } from "./db/schema.js";
 

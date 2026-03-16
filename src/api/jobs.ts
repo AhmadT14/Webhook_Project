@@ -1,20 +1,19 @@
 import express, { NextFunction, Request, Response } from "express";
 import {
-  addToHistory,
-  getFullDeliveryAttempty,
+  getFullDeliveryAttempts,
   getDeliveryAttemptysByJobId,
-  getJobStatus,
-  getJobStatusById,
-} from "../db/queries/jobsHistory.js";
+  addDeliveryAttempt,
+} from "../db/queries/deliverAttempts.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
+import { getJobs, getJobsById } from "../db/queries/jobs.js";
 
-export const historyRouter = express.Router();
+export const jobsRouter = express.Router();
 
-historyRouter.get(
-  "/deliveryAttempts",
+jobsRouter.get(
+  "/delivery-attempts",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const history = await getFullDeliveryAttempty();
+      const history = await getFullDeliveryAttempts();
       res.status(200).send(history);
     } catch (err) {
       next(err);
@@ -22,17 +21,29 @@ historyRouter.get(
   },
 );
 
-historyRouter.get(
-  "/deliveryAttempts/:jobId",
+jobsRouter.get(
+  "/deliveryAttempts",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const jobId = Array.isArray(req.params.jobId)
+      const history = await getFullDeliveryAttempts();
+      res.status(200).send(history);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+jobsRouter.get(
+  "/:jobId/delivery-attempts",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const jobID = Array.isArray(req.params.jobId)
         ? req.params.jobId[0]
         : req.params.jobId;
-      if (!jobId) {
+      if (!jobID) {
         throw new BadRequestError("Invalid Format");
       }
-      const history = await getDeliveryAttemptysByJobId(jobId);
+      const history = await getDeliveryAttemptysByJobId(jobID);
       if (!history) {
         throw new NotFoundError("History Not Found!");
       }
@@ -43,11 +54,12 @@ historyRouter.get(
   },
 );
 
-historyRouter.get(
+
+jobsRouter.get(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const jobs = await getJobStatus();
+      const jobs = await getJobs();
       if (!jobs) {
         throw new NotFoundError("No Jobs Found!");
       }
@@ -58,17 +70,17 @@ historyRouter.get(
   },
 );
 
-historyRouter.get(
+jobsRouter.get(
   "/:jobId",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const jobId = Array.isArray(req.params.jobId)
+      const jobID = Array.isArray(req.params.jobId)
         ? req.params.jobId[0]
         : req.params.jobId;
-      if (!jobId) {
+      if (!jobID) {
         throw new BadRequestError("Invalid Format");
       }
-      const job = await getJobStatusById(jobId);
+      const job = await getJobsById(jobID);
       if (!job) {
         throw new NotFoundError("Job Not Found!");
       }
@@ -79,21 +91,35 @@ historyRouter.get(
   },
 );
 
-historyRouter.post(
-  "/",
+jobsRouter.post(
+  "/:jobId/delivery-attempts",
   async (req: Request, res: Response, next: NextFunction) => {
     type HistoryData = {
-      job_id: string;
       subscriber_id: string;
       subscriber_attempt_status?: string;
       attempt_no: number;
     };
     try {
-      if (!req.body.job_id || !req.body.subscriber_id || !req.body.attempt_no) {
+      const jobID = Array.isArray(req.params.jobId)
+        ? req.params.jobId[0]
+        : req.params.jobId;
+      if (!jobID) {
+        throw new BadRequestError("Invalid Format");
+      }
+      if (!req.body.subscriber_id || req.body.attempt_no === undefined ||
+  typeof req.body.attempt_no !== "number") {
         throw new BadRequestError("Invalid Format");
       }
       const historyData: HistoryData = req.body;
-      const history = await addToHistory(historyData);
+      const status =
+historyData.subscriber_attempt_status === "sent" ? "sent" : "failed";
+
+const history = await addDeliveryAttempt({
+job_id: jobID,
+subscriber_id: historyData.subscriber_id,
+attempt_no: historyData.attempt_no,
+subscriber_attempt_status: status,
+});
       res.status(201).send(history);
     } catch (err) {
       next(err);

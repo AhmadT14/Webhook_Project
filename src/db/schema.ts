@@ -28,7 +28,7 @@ export const subscribersTable = pgTable("subscribers", {
   pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id),
 });
 
-export const jobsSubscribersTable = pgTable("jobs_subscribers", {
+export const deliveryAttemptsTable = pgTable("delivery_attempts", {
   id: uuid("id").defaultRandom().primaryKey(),
   job_id: uuid("job_id").references(() => jobsTable.id),
   subscriber_id: uuid("subscriber_id").references(() => subscribersTable.id),

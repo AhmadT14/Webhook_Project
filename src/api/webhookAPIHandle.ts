@@ -4,7 +4,7 @@ import { createJob } from "../db/queries/jobs.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
 
-export const webhookUrlPath = "/webhook/:pipelineId";
+export const webhookUrlPath = "/api/webhooks/:pipelineId";
 
 export async function webhookHandler(
   req: Request,
