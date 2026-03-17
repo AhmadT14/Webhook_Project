@@ -54,12 +54,12 @@ pipelineRouter.post(
     try {
       if (
         typeof req.body.name !== "string" ||
-        typeof req.body.actions !== "string"
+        typeof req.body.action !== "string"
       ) {
         throw new BadRequestError("Invalid Format");
       }
-      if (!Actions.includes(req.body.actions)) {
-        throw new BadRequestError(`Invalid action: ${req.body.actions}`);
+      if (!Actions.includes(req.body.action)) {
+        throw new BadRequestError(`Invalid action: ${req.body.action}`);
       }
       const pipelineData: PipelineData = req.body;
       const pipeline = await createPipeline(pipelineData);
@@ -80,26 +80,26 @@ pipelineRouter.put(
       if (!pipelineID) {
         throw new BadRequestError("Invalid Format");
       }
-      const { name, actions } = req.body;
-      if (!name && !actions) {
+      const { name, action } = req.body;
+      if (!name && !action) {
         throw new BadRequestError("Nothing to update");
       }
       if (name !== undefined && typeof name !== "string") {
         throw new BadRequestError("Invalid Format");
       }
-      if (actions !== undefined) {
-        if (typeof actions !== "string") {
+      if (action !== undefined) {
+        if (typeof action !== "string") {
           throw new BadRequestError("Invalid Format");
         }
-        if (!Actions.includes(actions)) {
-          throw new BadRequestError(`Invalid action: ${actions}`);
+        if (!Actions.includes(action)) {
+          throw new BadRequestError(`Invalid action: ${action}`);
         }
       }
       const existing = await getPipelineById(pipelineID);
       if (!existing) {
         throw new NotFoundError("Pipeline not found");
       }
-      const updated = await updatePipelineById(pipelineID, { name, actions });
+      const updated = await updatePipelineById(pipelineID, { name, action });
       res.status(200).send(updated);
     } catch (err) {
       next(err);

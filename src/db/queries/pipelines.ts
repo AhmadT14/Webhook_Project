@@ -29,7 +29,7 @@ export async function deletePipelineById(id: string) {
 
 export async function updatePipelineById(
   id: string,
-  data: Partial<{ name: string; actions: string }>,
+  data: Partial<{ name: string; action: string }>,
 ) {
   const [result] = await db
     .update(pipelinesTable)

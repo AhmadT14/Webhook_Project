@@ -20,7 +20,7 @@ app.use("/api/jobs", APIKeyValidation, jobsRouter);
 app.post("/api/webhook/:pipelineId", webhookHandler);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
+  res.send("Webhook Project!");
 });
 
 app.use(errorHandler);
