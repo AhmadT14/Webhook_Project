@@ -12,20 +12,8 @@ jobsRouter.get(
   "/delivery-attempts",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const history = await getFullDeliveryAttempts();
-      res.status(200).send(history);
-    } catch (err) {
-      next(err);
-    }
-  },
-);
-
-jobsRouter.get(
-  "/deliveryAttempts",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const history = await getFullDeliveryAttempts();
-      res.status(200).send(history);
+      const deliveryAttempts = await getFullDeliveryAttempts();
+      res.status(200).send(deliveryAttempts);
     } catch (err) {
       next(err);
     }
@@ -42,11 +30,11 @@ jobsRouter.get(
       if (!jobID) {
         throw new BadRequestError("Invalid Format");
       }
-      const history = await getDeliveryAttemptsByJobId(jobID);
-      if (!history) {
-        throw new NotFoundError("History Not Found!");
+      const deliveryAttempt = await getDeliveryAttemptsByJobId(jobID);
+      if (deliveryAttempt.length===0) {
+        throw new NotFoundError("Delivery Attempts Not Found!");
       }
-      res.status(200).send(history);
+      res.status(200).send(deliveryAttempt);
     } catch (err) {
       next(err);
     }

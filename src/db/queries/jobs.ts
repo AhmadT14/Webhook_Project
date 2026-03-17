@@ -25,7 +25,7 @@ export async function getJobs() {
 }
 
 export async function getJobsById(jobId: string) {
-  const result = await db
+  const [result] = await db
     .select()
     .from(jobsTable)
     .where(eq(jobsTable.id, jobId));

@@ -7,6 +7,7 @@ import {
   updatePipelineById,
 } from "../db/queries/pipelines.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
+import { Actions } from "../actions.js";
 
 const pipelineRouter = express.Router();
 
@@ -48,11 +49,17 @@ pipelineRouter.post(
   async (req: Request, res: Response, next: NextFunction) => {
     type PipelineData = {
       name: string;
-      actions: string;
+      action: string;
     };
     try {
-      if (!req.body.name || !req.body.actions) {
+      if (
+        typeof req.body.name !== "string" ||
+        typeof req.body.actions !== "string"
+      ) {
         throw new BadRequestError("Invalid Format");
+      }
+      if (!Actions.includes(req.body.actions)) {
+        throw new BadRequestError(`Invalid action: ${req.body.actions}`);
       }
       const pipelineData: PipelineData = req.body;
       const pipeline = await createPipeline(pipelineData);
@@ -76,6 +83,17 @@ pipelineRouter.put(
       const { name, actions } = req.body;
       if (!name && !actions) {
         throw new BadRequestError("Nothing to update");
+      }
+      if (name !== undefined && typeof name !== "string") {
+        throw new BadRequestError("Invalid Format");
+      }
+      if (actions !== undefined) {
+        if (typeof actions !== "string") {
+          throw new BadRequestError("Invalid Format");
+        }
+        if (!Actions.includes(actions)) {
+          throw new BadRequestError(`Invalid action: ${actions}`);
+        }
       }
       const existing = await getPipelineById(pipelineID);
       if (!existing) {

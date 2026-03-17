@@ -15,7 +15,7 @@ export async function getPipelineById(id: string) {
   return result;
 }
 
-export async function createPipeline(data: { name: string; actions: string }) {
+export async function createPipeline(data: { name: string; action: string }) {
   const [result] = await db.insert(pipelinesTable).values(data).returning();
   return result;
 }

@@ -44,8 +44,8 @@ export async function worker() {
         console.error(`Pipeline ${pipelineId} not found for job ${job.id}`);
         continue;
       }
-      const actions = pipeline.actions;
-      if (!pipeline.actions) {
+      const actions = pipeline.action;
+      if (!pipeline.action) {
         await changeJobStatus("failed", job.id);
         console.error(`Pipeline ${pipelineId} has no actions`);
         continue;
@@ -75,7 +75,7 @@ export async function worker() {
         await changeJobStatus("failed", job.id);
       } else {
         const attempts = await jobAttemptsCount(job.id);
-        if (attempts.attempts! > 5) {
+        if (attempts.attempts >= 5) {
           await changeJobStatus("failed", job.id);
         } else {
           await changeJobStatus("queued", job.id);
@@ -111,5 +111,3 @@ async function payloadBuilder(
 ): Promise<ActionsResultPayload> {
   return processing(payload, actions);
 }
-
-await worker();

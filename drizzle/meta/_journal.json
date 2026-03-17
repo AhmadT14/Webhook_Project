@@ -43,6 +43,13 @@
       "when": 1773690536951,
       "tag": "0005_swift_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773771115044,
+      "tag": "0006_supreme_namora",
+      "breakpoints": true
     }
   ]
 }

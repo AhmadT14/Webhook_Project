@@ -7,6 +7,7 @@
     "build": "npx tsc",
     "start": "node dist/app.js",
     "dev": "npx tsc && node dist/app.js",
+    "worker": "npx tsc && node dist/workerEntry.js",
     "prettier_check": "npx prettier . --check",
     "prettier_write": "npx prettier . --write",
     "db:generate": "npx drizzle-kit generate",

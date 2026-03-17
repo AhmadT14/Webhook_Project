@@ -4,7 +4,7 @@ import { timestamp } from "drizzle-orm/pg-core";
 export const pipelinesTable = pgTable("pipelines", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  actions: text("actions").notNull(),
+  action: text("action").notNull(),
   created_at: timestamp().notNull().defaultNow(),
 });
 
@@ -17,8 +17,7 @@ export const jobsTable = pgTable("jobs", {
   sent_at: timestamp(),
   attempts: integer("attempts").default(0).notNull(),
   pipeline_id: uuid("pipeline_id")
-    .references(() => pipelinesTable.id)
-    .notNull(),
+    .references(() => pipelinesTable.id, { onDelete: "set null" }),
 });
 
 export const subscribersTable = pgTable("subscribers", {
@@ -26,7 +25,7 @@ export const subscribersTable = pgTable("subscribers", {
   url: text("url").notNull().unique(),
   name: text("name").notNull().unique(),
   created_at: timestamp().notNull().defaultNow(),
-  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id),
+  pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id, { onDelete: "cascade" }),
 });
 
 export const deliveryAttemptsTable = pgTable("delivery_attempts", {
@@ -35,9 +34,8 @@ export const deliveryAttemptsTable = pgTable("delivery_attempts", {
     .references(() => jobsTable.id)
     .notNull(),
   subscriber_id: uuid("subscriber_id")
-    .references(() => subscribersTable.id)
-    .notNull(),
-  attempt_no: integer("attempt_No").default(0).notNull(),
+    .references(() => subscribersTable.id, { onDelete: "set null" }),
+  attempt_no: integer("attempt_no").default(0).notNull(),
   subscriber_attempt_status: text("subscriber_attempt_status")
     .notNull()
     .default("failed"),
