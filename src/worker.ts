@@ -75,7 +75,7 @@ export async function worker() {
         await changeJobStatus("failed", job.id);
       } else {
         const attempts = await jobAttemptsCount(job.id);
-        if (attempts.attempts >= 5) {
+        if (attempts.attempts >= 4) {
           await changeJobStatus("failed", job.id);
         } else {
           await changeJobStatus("queued", job.id);

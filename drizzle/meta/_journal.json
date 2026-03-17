@@ -50,6 +50,13 @@
       "when": 1773771115044,
       "tag": "0006_supreme_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778793600000,
+      "tag": "0007_fix_delivery_attempts_attempt_no",
+      "breakpoints": true
     }
   ]
 }
