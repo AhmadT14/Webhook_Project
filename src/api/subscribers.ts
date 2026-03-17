@@ -9,10 +9,10 @@ import {
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
 
-const subscriberRouter = express.Router();
+const subscriberRouter = express.Router({ mergeParams: true });
 
 subscriberRouter.get(
-  "/:pipelineId",
+  "/",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const pipelineID = Array.isArray(req.params.pipelineId)
@@ -86,7 +86,6 @@ subscriberRouter.post(
     }
   },
 );
-
 
 subscriberRouter.put(
   "/:subscriberId",

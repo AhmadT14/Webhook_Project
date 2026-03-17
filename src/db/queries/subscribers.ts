@@ -35,15 +35,6 @@ export async function createSubscriber(data: {
   return result;
 }
 
-export async function updateSubscriber(data: {
-  name: string;
-  pipeline_id: string;
-  url: string;
-}) {
-  const [result] = await db.insert(subscribersTable).values(data).returning();
-  return result;
-}
-
 export async function deleteSubscriberById(id: string) {
   const result = await db
     .delete(subscribersTable)
