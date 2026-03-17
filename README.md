@@ -173,6 +173,8 @@ In Compose, defaults are already set:
 - `DATABASE_URL=postgresql://webhook_user:webhook_pass@db:5432/webhook_db`
 - `ADMIN_API_KEY=dev-admin-key` (or overridden from shell/.env)
 
+Security note: these Compose defaults are intended for local development/testing only. Do not commit real secrets in `docker-compose.yml`. For real environments, load values from a local `.env` file (gitignored) or a proper secret manager.
+
 If you want a custom key:
 
 ```bash
