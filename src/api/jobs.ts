@@ -31,7 +31,7 @@ jobsRouter.get(
         throw new BadRequestError("Invalid Format");
       }
       const deliveryAttempt = await getDeliveryAttemptsByJobId(jobID);
-      if (deliveryAttempt.length===0) {
+      if (deliveryAttempt.length === 0) {
         throw new NotFoundError("Delivery Attempts Not Found!");
       }
       res.status(200).send(deliveryAttempt);
