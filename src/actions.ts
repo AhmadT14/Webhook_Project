@@ -1,32 +1,75 @@
-import { Payload } from "./worker.js";
+import { randomUUID } from "node:crypto";
 
-export type ActionsResultPayload = { student: string; result: number };
-export const Actions = ["average", "sum", "max", "min"];
+export type ActionsResultPayload = Record<string, unknown>;
+export const Actions = ["uppercase", "add_event_id", "redact"];
 
-export async function gradesAverage(payload: Payload) {
-  const grades: number[] = payload.grades;
-  let sum = 0;
-  for (let i = 0; i < grades.length; i++) {
-    sum += grades[i];
+function uppercaseUnknown(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.toUpperCase();
   }
-  return sum / grades.length;
-}
-
-export async function gradesSum(payload: Payload) {
-  const grades: number[] = payload.grades;
-  let sum = 0;
-  for (let i = 0; i < grades.length; i++) {
-    sum += grades[i];
+  if (Array.isArray(value)) {
+    return value.map((item) => uppercaseUnknown(item));
   }
-  return sum;
+  if (typeof value === "object" && value !== null) {
+    return uppercaseValues(value as Record<string, unknown>);
+  }
+  return value;
 }
 
-export async function gradesMax(payload: Payload) {
-  const grades: number[] = payload.grades;
-  return Math.max(...grades);
+function uppercaseValues(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = uppercaseUnknown(value);
+  }
+  return result;
 }
 
-export async function gradesMin(payload: Payload) {
-  const grades: number[] = payload.grades;
-  return Math.min(...grades);
+export async function uppercase(
+  payload: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  return uppercaseValues(payload);
+}
+
+export async function addEventId(
+  payload: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  return {
+    ...payload,
+    event_id: randomUUID(),
+  };
+}
+
+const SENSITIVE_KEYS = [
+  "password",
+  "token",
+  "secret",
+  "key",
+  "authorization",
+  "auth",
+];
+
+function redactObject(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (SENSITIVE_KEYS.some((s) => key.toLowerCase().includes(s))) {
+      result[key] = "[REDACTED]";
+    } else if (
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value)
+    ) {
+      result[key] = redactObject(value as Record<string, unknown>);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+export async function redact(
+  payload: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  return redactObject(payload);
 }

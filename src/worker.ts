@@ -1,9 +1,8 @@
 import {
   ActionsResultPayload,
-  gradesAverage,
-  gradesMax,
-  gradesMin,
-  gradesSum,
+  uppercase,
+  addEventId,
+  redact,
   Actions,
 } from "./actions.js";
 import {
@@ -19,11 +18,7 @@ import { getSubscribersByPipelineId } from "./db/queries/subscribers.js";
 import { subscribersForwarding } from "./subscriberForwarding.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-export type Payload = {
-  student: string;
-  subject: string;
-  grades: number[];
-};
+export type Payload = Record<string, unknown>;
 
 export async function worker() {
   let job;
@@ -35,7 +30,11 @@ export async function worker() {
     }
     try {
       const payload: Payload = JSON.parse(job.payload);
-      if (!payload.student || !payload.subject || !payload.grades) {
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        Array.isArray(payload)
+      ) {
         throw new BadRequestError("Invalid Format");
       }
       const pipelineId = job.pipeline_id;
@@ -90,19 +89,19 @@ export async function worker() {
 export async function processing(
   payload: Payload,
   action: string,
-): Promise<number | void> {
+): Promise<ActionsResultPayload> {
   if (!Actions.includes(action)) {
     throw new BadRequestError(`Invalid action: ${action}`);
   }
   switch (action) {
-    case "average":
-      return gradesAverage(payload);
-    case "sum":
-      return gradesSum(payload);
-    case "max":
-      return gradesMax(payload);
-    case "min":
-      return gradesMin(payload);
+    case "uppercase":
+      return uppercase(payload);
+    case "add_event_id":
+      return addEventId(payload);
+    case "redact":
+      return redact(payload);
+    default:
+      throw new BadRequestError(`Invalid action: ${action}`);
   }
 }
 
@@ -110,8 +109,7 @@ async function payloadBuilder(
   payload: Payload,
   actions: string,
 ): Promise<ActionsResultPayload> {
-  const answer = await processing(payload, actions);
-  return { student: payload.student, result: answer! };
+  return processing(payload, actions);
 }
 
 await worker();
