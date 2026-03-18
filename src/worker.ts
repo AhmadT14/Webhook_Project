@@ -18,7 +18,6 @@ import { getSubscribersByPipelineId } from "./db/queries/subscribers.js";
 import { subscribersForwarding } from "./subscriberForwarding.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-export type Payload = Record<string, unknown>;
 
 export async function worker() {
   let job;
@@ -29,7 +28,7 @@ export async function worker() {
       continue;
     }
     try {
-      const payload: Payload = job.payload;
+      const payload: Record<string, unknown> = job.payload;
       if (
         typeof payload !== "object" ||
         payload === null ||
@@ -87,7 +86,7 @@ export async function worker() {
 }
 
 export async function processing(
-  payload: Payload,
+  payload: Record<string, unknown>,
   action: string,
 ): Promise<ActionsResultPayload> {
   if (!Actions.includes(action)) {
@@ -106,7 +105,7 @@ export async function processing(
 }
 
 async function payloadBuilder(
-  payload: Payload,
+  payload: Record<string, unknown>,
   actions: string,
 ): Promise<ActionsResultPayload> {
   return processing(payload, actions);

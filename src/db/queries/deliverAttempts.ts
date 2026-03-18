@@ -37,6 +37,7 @@ export async function addDeliveryAttempt(data: {
   subscriber_id: string;
   subscriber_attempt_status?: string;
   attempt_no: number;
+  processed_payload: Record<string, unknown>;
 }) {
   const result = await db
     .insert(deliveryAttemptsTable)

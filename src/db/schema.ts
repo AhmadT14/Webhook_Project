@@ -44,4 +44,7 @@ export const deliveryAttemptsTable = pgTable("delivery_attempts", {
     .notNull()
     .default("failed"),
   added_at: timestamp().notNull().defaultNow(),
+  processed_payload: jsonb("processed_payload")
+    .$type<Record<string, unknown>>()
+    .notNull(),
 });
