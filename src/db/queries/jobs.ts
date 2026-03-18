@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 
 export async function createJob(data: {
   pipeline_id: string;
-  payload: string;
+  payload: Record<string, unknown>;
 }) {
   const [result] = await db.insert(jobsTable).values(data).returning();
   return result;

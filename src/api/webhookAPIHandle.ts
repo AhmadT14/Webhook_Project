@@ -20,6 +20,9 @@ export async function webhookHandler(
       throw new BadRequestError("Invalid Format");
     }
     const data = req.body;
+    if (typeof data !== "object" || data === null || Array.isArray(data)) {
+      throw new BadRequestError("Invalid Format");
+    }
     const pipeline = await getPipelineById(id);
     if (!pipeline) {
       throw new NotFoundError("Pipeline not found");
@@ -27,7 +30,7 @@ export async function webhookHandler(
 
     const job = await createJob({
       pipeline_id: id,
-      payload: JSON.stringify(data),
+      payload: data,
     });
     res.status(201).send(job);
   } catch (err) {

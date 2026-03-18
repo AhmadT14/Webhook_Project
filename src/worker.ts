@@ -29,7 +29,7 @@ export async function worker() {
       continue;
     }
     try {
-      const payload: Payload = JSON.parse(job.payload);
+      const payload: Payload = job.payload;
       if (
         typeof payload !== "object" ||
         payload === null ||
