@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" RENAME COLUMN "sent_at" TO "completed_at";

@@ -63,7 +63,7 @@ export async function worker() {
       );
       const allSucceeded = responses.every((r) => r === true);
       if (allSucceeded) {
-        await changeJobStatus("sent", job.id);
+        await changeJobStatus("completed", job.id);
         await jobSent(job.id);
       } else {
         throw new Error("Some subscribers failed to receive message");

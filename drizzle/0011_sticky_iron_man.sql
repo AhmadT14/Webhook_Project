@@ -1,0 +1,1 @@
+ALTER TABLE "delivery_attempts" RENAME COLUMN "subscriber_attempt_status" TO "attempt_status";

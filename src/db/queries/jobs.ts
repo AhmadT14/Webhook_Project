@@ -42,7 +42,7 @@ export async function changeJobStatus(status: string, jobId: string) {
 export async function jobSent(jobId: string) {
   await db
     .update(jobsTable)
-    .set({ attempts: sql`${jobsTable.attempts} + 1`, sent_at: sql`NOW()` })
+    .set({ attempts: sql`${jobsTable.attempts} + 1`, completed_at: sql`NOW()` })
     .where(eq(jobsTable.id, jobId));
 }
 

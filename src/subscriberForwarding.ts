@@ -22,7 +22,7 @@ export async function subscribersForwarding(
         jobId,
         subscribers[row].id,
       );
-      if (!record || record.subscriber_attempt_status === "failed") {
+      if (!record || record.attempt_status === "failed") {
         const response = await fetch(subscribers[row].url, {
           method: "POST",
           body: JSON.stringify(processedPayload),

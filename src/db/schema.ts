@@ -14,7 +14,7 @@ export const jobsTable = pgTable("jobs", {
   job_status: text("status").notNull().default("queued"),
   created_at: timestamp().notNull().defaultNow(),
   last_retry: timestamp().notNull().defaultNow(),
-  sent_at: timestamp(),
+  completed_at: timestamp(),
   attempts: integer("attempts").default(0).notNull(),
   pipeline_id: uuid("pipeline_id").references(() => pipelinesTable.id, {
     onDelete: "set null",
@@ -40,9 +40,7 @@ export const deliveryAttemptsTable = pgTable("delivery_attempts", {
     onDelete: "set null",
   }),
   attempt_no: integer("attempt_no").default(0).notNull(),
-  subscriber_attempt_status: text("subscriber_attempt_status")
-    .notNull()
-    .default("failed"),
+  attempt_status: text("attempt_status").notNull().default("failed"),
   added_at: timestamp().notNull().defaultNow(),
   processed_payload: jsonb("processed_payload")
     .$type<Record<string, unknown>>()
