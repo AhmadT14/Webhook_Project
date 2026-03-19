@@ -18,6 +18,7 @@ import { getSubscribersByPipelineId } from "./db/queries/subscribers.js";
 import { subscribersForwarding } from "./subscriberForwarding.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const MAX_JOB_ATTEMPTS = 5;
 
 export async function worker() {
   let job;
@@ -74,11 +75,14 @@ export async function worker() {
         await changeJobStatus("failed", job.id);
       } else {
         const attempts = await jobAttemptsCount(job.id);
-        if (attempts.attempts >= 4) {
+        const nextAttempt = attempts.attempts + 1;
+
+        await jobRetry(job.id);
+
+        if (nextAttempt >= MAX_JOB_ATTEMPTS) {
           await changeJobStatus("failed", job.id);
         } else {
           await changeJobStatus("queued", job.id);
-          await jobRetry(job.id);
         }
       }
     }
