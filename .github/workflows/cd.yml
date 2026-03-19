@@ -33,6 +33,3 @@ jobs:
 
       - name: Build and push to Artifact Registry
         run: gcloud builds submit --tag me-west1-docker.pkg.dev/webhookproject-490301/webhookproject/webhook-project-app:latest .
-
-      - name: Run sensitive credentials check
-        run: git diff HEAD

@@ -35,7 +35,7 @@ export async function getDeliveryAttemptsBySubscriberId(
 export async function addDeliveryAttempt(data: {
   job_id: string;
   subscriber_id: string;
-  subscriber_attempt_status?: string;
+  attempt_status?: string;
   attempt_no: number;
   processed_payload: Record<string, unknown>;
 }) {

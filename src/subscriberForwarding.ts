@@ -40,7 +40,7 @@ export async function subscribersForwarding(
           await addDeliveryAttempt({
             job_id: jobId,
             subscriber_id: subscribers[row].id,
-            subscriber_attempt_status: "sent",
+            attempt_status: "sent",
             attempt_no: (await jobAttemptsCount(jobId)).attempts! + 1,
             processed_payload: processedPayload,
           });
