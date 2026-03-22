@@ -2,7 +2,7 @@ FROM node:22-slim
 
 WORKDIR /usr/src/app
 
-ADD . .
+COPY . .
 
 RUN npm ci
 

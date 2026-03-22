@@ -1,35 +1,38 @@
 import { randomUUID } from "node:crypto";
 
 export type ActionsResultPayload = Record<string, unknown>;
-export const Actions = ["uppercase", "add_event_id", "redact"];
+export const Actions = ["convertDatesToISO", "add_event_id", "redact"];
 
-function uppercaseUnknown(value: unknown): unknown {
-  if (typeof value === "string") {
-    return value.toUpperCase();
+function convertDatesToISOUnknown(value: unknown): unknown {
+  if (value instanceof Date) {
+    return value.toISOString();
   }
   if (Array.isArray(value)) {
-    return value.map((item) => uppercaseUnknown(item));
+    return value.map((item) => convertDatesToISOUnknown(item));
   }
   if (typeof value === "object" && value !== null) {
-    return uppercaseValues(value as Record<string, unknown>);
+    return convertDatesToISOValues(value as Record<string, unknown>);
+  }
+  if (typeof value === "string" && !isNaN(Date.parse(value))) {
+    return new Date(value).toISOString();
   }
   return value;
 }
 
-function uppercaseValues(
+function convertDatesToISOValues(
   obj: Record<string, unknown>,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
-    result[key] = uppercaseUnknown(value);
+    result[key] = convertDatesToISOUnknown(value);
   }
   return result;
 }
 
-export async function uppercase(
+export async function convertDatesToISO(
   payload: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  return uppercaseValues(payload);
+  return convertDatesToISOValues(payload);
 }
 
 export async function addEventId(

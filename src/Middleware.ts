@@ -1,7 +1,7 @@
 import { BadRequestError, NotFoundError, UnAuthorized } from "./errors.js";
 import type { Request, Response, NextFunction } from "express";
 
-export function errorHandler(
+export function errorMiddleware(
   err: Error,
   _: Request,
   res: Response,

@@ -4,7 +4,7 @@ import { pipelineRouter } from "./api/pipelines.js";
 import { subscriberRouter } from "./api/subscribers.js";
 import { jobsRouter } from "./api/jobs.js";
 import { webhookHandler } from "./api/webhookAPIHandle.js";
-import { errorHandler } from "./errorMiddleware.js";
+import { errorMiddleware } from "./Middleware.js";
 import { APIKeyValidation } from "./APIKeyValidation.js";
 
 const app = express();
@@ -23,7 +23,7 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Webhook Project!");
 });
 
-app.use(errorHandler);
+app.use(errorMiddleware);
 
 app.listen(port, () => {
   return console.log(`Express is listening at http://localhost:${port}`);

@@ -1,9 +1,9 @@
 import {
   ActionsResultPayload,
-  uppercase,
   addEventId,
   redact,
   Actions,
+  convertDatesToISO,
 } from "./actions.js";
 import {
   returnQueuedjob,
@@ -97,8 +97,8 @@ export async function processing(
     throw new BadRequestError(`Invalid action: ${action}`);
   }
   switch (action) {
-    case "uppercase":
-      return uppercase(payload);
+    case "convertDatesToISO":
+      return convertDatesToISO(payload);
     case "add_event_id":
       return addEventId(payload);
     case "redact":
