@@ -82,6 +82,14 @@ npm run worker
 - DB service: PostgreSQL 16 (Docker image `postgres:16-alpine`)
 - Migration service: runs schema migrations before API/worker start
 
+## Drizzle ORM
+
+This project uses [Drizzle ORM](https://orm.drizzle.team/) for type-safe SQL queries and schema migrations in TypeScript.
+
+- **Schema location:** `src/db/schema.ts`
+- **Migrations:** SQL migration files are in the `drizzle/` directory. Migrations are run automatically by the migration service on startup (see Docker Compose).
+- **Configuration:** See `drizzle.config.ts` for Drizzle setup.
+
 ### Flow
 
 1. Client sends webhook to `POST /api/webhook/:pipelineId`.
@@ -97,7 +105,7 @@ npm run worker
 
 Current supported actions:
 
-- `uppercase`: recursively uppercases all string values (including nested objects and arrays)
+- `convertDatesToISO`: recursively converts all date-like strings and Date objects to ISO 8601 strings (including nested objects and arrays)
 - `add_event_id`: enriches payload with `event_id` (UUID)
 - `redact`: replaces sensitive-key fields (password, token, secret, key, authorization, auth) with `[REDACTED]`
 
@@ -131,8 +139,8 @@ Example create payload:
 
 ```json
 {
-  "name": "Uppercase Orders",
-  "action": "uppercase"
+  "name": "Redact Pipeline",
+  "action": "redact"
 }
 ```
 
@@ -184,38 +192,74 @@ docker compose up --build
 
 ## Example End-to-End Usage
 
-### 1. Create pipeline
+### 1. Create pipeline (Postman)
 
-```bash
-curl -X POST http://localhost:3000/api/pipelines \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $ADMIN_API_KEY" \
-  -d '{"name":"Redact Pipeline","actions":"redact"}'
+1. Open Postman and create a new `POST` request to:
+   `http://localhost:3000/api/pipelines`
+2. In the **Headers** tab, add:
+
+- `Content-Type`: `application/json`
+- `X-API-Key`: your admin API key (e.g., dev-admin-key)
+
+3. In the **Body** tab, select `raw` and `JSON`, then enter:
+
+```json
+{
+  "name": "Redact Pipeline",
+  "action": "redact"
+}
 ```
 
-### 2. Add subscribers
+4. Click **Send**. The response will contain the created pipeline.
 
-```bash
-curl -X POST http://localhost:3000/api/pipelines/<PIPELINE_ID>/subscribers \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $ADMIN_API_KEY" \
-  -d '{"name":"Receiver","url":"https://webhook.site/<id>"}'
+### 2. Add subscribers (Postman)
+
+1. Create a new `POST` request to:
+   `http://localhost:3000/api/pipelines/<PIPELINE_ID>/subscribers`
+2. In the **Headers** tab, add:
+
+- `Content-Type`: `application/json`
+- `X-API-Key`: your admin API key
+
+3. In the **Body** tab, select `raw` and `JSON`, then enter:
+
+```json
+{
+  "name": "Receiver",
+  "url": "https://webhook.site/<id>"
+}
 ```
 
-### 3. Trigger webhook
+4. Click **Send**. The response will contain the created subscriber.
 
-```bash
-curl -X POST http://localhost:3000/api/webhook/<PIPELINE_ID> \
-  -H "Content-Type: application/json" \
-  -d '{"user":"ahmad","password":"123456"}'
+### 3. Trigger webhook (Postman)
+
+1. Create a new `POST` request to:
+   `http://localhost:3000/api/webhook/<PIPELINE_ID>`
+2. In the **Headers** tab, add:
+
+- `Content-Type`: `application/json`
+
+3. In the **Body** tab, select `raw` and `JSON`, then enter:
+
+```json
+{
+  "user": "ahmad",
+  "password": "123456"
+}
 ```
 
-### 4. Check job history
+4. Click **Send**. The response will show the webhook was accepted.
 
-```bash
-curl -X GET http://localhost:3000/api/jobs \
-  -H "X-API-Key: $ADMIN_API_KEY"
-```
+### 4. Check job history (Postman)
+
+1. Create a new `GET` request to:
+   `http://localhost:3000/api/jobs`
+2. In the **Headers** tab, add:
+
+- `X-API-Key`: your admin API key
+
+3. Click **Send**. The response will list jobs and their statuses.
 
 ## CI/CD
 
@@ -226,7 +270,7 @@ Runs on push to `main`:
 - install dependencies
 - build (`npm run build`)
 - lint (`npm run lint`)
-- format check (`npm run prettier_check`)
+- format check (`npm run prettier:check`)
 
 ### CD (`.github/workflows/cd.yml`)
 
