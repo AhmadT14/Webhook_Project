@@ -1,5 +1,5 @@
 import { db } from "../index.js";
-import { eq, desc, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { deliveryAttemptsTable, jobsTable } from "../schema.js";
 
 export async function getFullDeliveryAttempts() {

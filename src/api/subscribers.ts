@@ -61,7 +61,7 @@ subscriberRouter.post(
       name: string;
       pipeline_id: string;
       url: string;
-      action: string
+      action: string;
     };
     try {
       const pipelineId = Array.isArray(req.params.pipelineId)
@@ -79,7 +79,7 @@ subscriberRouter.post(
         name: req.body.name,
         url: req.body.url,
         pipeline_id: pipelineId,
-        action: req.body.action
+        action: req.body.action,
       };
       const subscriber = await createSubscriber(SubscriberData);
       res.status(201).send(subscriber);

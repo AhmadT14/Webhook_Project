@@ -5,11 +5,7 @@ import {
   Actions,
   convertDatesToISO,
 } from "./actions.js";
-import {
-  returnQueuedjob,
-  jobRetry,
-  jobSent,
-} from "./db/queries/jobs.js";
+import { returnQueuedjob, jobRetry, jobSent } from "./db/queries/jobs.js";
 import { getSubscriberById } from "./db/queries/subscribers.js";
 import { BadRequestError } from "./errors.js";
 import { subscriberForwarding } from "./subscriberForwarding.js";
@@ -37,17 +33,19 @@ export async function worker() {
       const subscriber = await getSubscriberById(subscriberId!);
       const processed_payload = await processing(payload, subscriber.action);
       if (processed_payload) {
-        const response = await subscriberForwarding(processed_payload, subscriber)
+        const response = await subscriberForwarding(
+          processed_payload,
+          subscriber,
+        );
         if (response) {
-          await jobSent(processed_payload,job.id);
-        }
-        else {
-          await jobRetry(processed_payload,job.id);
+          await jobSent(processed_payload, job.id);
+        } else {
+          await jobRetry(processed_payload, job.id);
         }
       }
     } catch (error) {
       console.error(`Job ${job.id} error:`, error);
-      await jobRetry({},job.id);
+      await jobRetry({}, job.id);
     }
   }
 }

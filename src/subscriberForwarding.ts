@@ -7,7 +7,7 @@ type subscriber = InferSelectModel<typeof subscribersTable>;
 export async function subscriberForwarding(
   processedPayload: ActionsResultPayload,
   subscriber: subscriber,
-){
+) {
   const response = await fetch(subscriber.url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
