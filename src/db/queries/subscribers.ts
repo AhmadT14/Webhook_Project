@@ -30,6 +30,7 @@ export async function createSubscriber(data: {
   name: string;
   pipeline_id: string;
   url: string;
+  action: string
 }) {
   const [result] = await db.insert(subscribersTable).values(data).returning();
   return result;

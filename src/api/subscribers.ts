@@ -61,13 +61,14 @@ subscriberRouter.post(
       name: string;
       pipeline_id: string;
       url: string;
+      action: string
     };
     try {
       const pipelineId = Array.isArray(req.params.pipelineId)
         ? req.params.pipelineId[0]
         : req.params.pipelineId;
 
-      if (!req.body.name || !pipelineId || !req.body.url) {
+      if (!req.body.name || !pipelineId || !req.body.url || req.body.action) {
         throw new BadRequestError("Invalid Format");
       }
       const pipeline = await getPipelineById(pipelineId);
@@ -78,6 +79,7 @@ subscriberRouter.post(
         name: req.body.name,
         url: req.body.url,
         pipeline_id: pipelineId,
+        action: req.body.action
       };
       const subscriber = await createSubscriber(SubscriberData);
       res.status(201).send(subscriber);

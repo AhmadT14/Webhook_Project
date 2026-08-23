@@ -15,29 +15,11 @@ export async function getDeliveryAttemptsByJobId(jobId: string) {
   return result;
 }
 
-export async function getDeliveryAttemptsBySubscriberId(
-  jobId: string,
-  subscriberId: string,
-) {
-  const [result] = await db
-    .select()
-    .from(deliveryAttemptsTable)
-    .where(
-      and(
-        eq(deliveryAttemptsTable.subscriber_id, subscriberId),
-        eq(deliveryAttemptsTable.job_id, jobId),
-      ),
-    )
-    .orderBy(desc(deliveryAttemptsTable.attempt_no));
-  return result;
-}
-
 export async function addDeliveryAttempt(data: {
   job_id: string;
-  subscriber_id: string;
   attempt_status?: string;
   attempt_no: number;
-  processed_payload: Record<string, unknown>;
+  payload: Record<string, unknown>;
 }) {
   const result = await db
     .insert(deliveryAttemptsTable)
