@@ -8,6 +8,7 @@ import {
 } from "../db/queries/subscribers.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
+import crypto from "crypto"
 
 const subscriberRouter = express.Router({ mergeParams: true });
 
@@ -57,11 +58,14 @@ subscriberRouter.get(
 subscriberRouter.post(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
+    const token = crypto.randomBytes(32).toString("hex");
+
     type SubscriberData = {
       name: string;
       pipeline_id: string;
       url: string;
       action: string;
+      auth_token: string;
     };
     try {
       const pipelineId = Array.isArray(req.params.pipelineId)
@@ -80,6 +84,7 @@ subscriberRouter.post(
         url: req.body.url,
         pipeline_id: pipelineId,
         action: req.body.action,
+        auth_token: token,
       };
       const subscriber = await createSubscriber(SubscriberData);
       res.status(201).send(subscriber);

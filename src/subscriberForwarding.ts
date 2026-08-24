@@ -10,7 +10,7 @@ export async function subscriberForwarding(
 ) {
   const response = await fetch(subscriber.url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${subscriber.auth_token}` },
     body: JSON.stringify(processedPayload),
   });
   return response.ok;

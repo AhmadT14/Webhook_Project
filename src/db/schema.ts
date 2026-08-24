@@ -33,6 +33,7 @@ export const subscribersTable = pgTable("subscribers", {
     onDelete: "cascade",
   }),
   action: text("action").notNull(),
+  auth_token: text("auth_token").notNull(),
 });
 
 export const deliveryAttemptsTable = pgTable("delivery_attempts", {
