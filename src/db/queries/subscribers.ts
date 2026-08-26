@@ -31,7 +31,7 @@ export async function createSubscriber(data: {
   pipeline_id: string;
   url: string;
   action: string;
-  auth_token: string;
+  signing_secret: string;
 }) {
   const [result] = await db.insert(subscribersTable).values(data).returning();
   return result;

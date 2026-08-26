@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError, UnAuthorized } from "./errors.js";
+import { BadRequestError, NotFoundError, UnAuthorized } from "../errors.js";
 import type { Request, Response, NextFunction } from "express";
 
 export function errorMiddleware(
@@ -21,7 +21,7 @@ export function errorMiddleware(
     message = err.message;
   }
   if (statusCode >= 500) {
-    console.log(err.message);
+    console.log(err);
   }
   respondWithError(res, statusCode, message);
 }

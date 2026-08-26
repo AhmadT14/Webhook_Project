@@ -8,6 +8,7 @@ import {
 } from "../db/queries/pipelines.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { Actions } from "../actions.js";
+import crypto from "node:crypto"
 
 const pipelineRouter = express.Router();
 
@@ -47,9 +48,12 @@ pipelineRouter.get(
 pipelineRouter.post(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
+    const signingSecret = crypto.randomBytes(32).toString("hex");
+
     type PipelineData = {
       name: string;
       action: string;
+      signing_secret: string;
     };
     try {
       if (
@@ -61,7 +65,11 @@ pipelineRouter.post(
       if (!Actions.includes(req.body.action)) {
         throw new BadRequestError(`Invalid action: ${req.body.action}`);
       }
-      const pipelineData: PipelineData = req.body;
+      const pipelineData: PipelineData = {
+        name: req.body.name,
+        action: req.body.action,
+        signing_secret: signingSecret,
+      };
       const pipeline = await createPipeline(pipelineData);
       res.status(201).send(pipeline);
     } catch (err) {

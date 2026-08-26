@@ -4,8 +4,8 @@ import { pipelineRouter } from "./api/pipelines.js";
 import { subscriberRouter } from "./api/subscribers.js";
 import { jobsRouter } from "./api/jobs.js";
 import { webhookHandler } from "./api/webhookAPIHandle.js";
-import { errorMiddleware } from "./Middleware.js";
-import { APIKeyValidation } from "./APIKeyValidation.js";
+import { errorMiddleware } from "./middlewares/errorMiddleware.js";
+import { APIKeyValidation } from "./middlewares/APIKeyValidation.js";
 
 const app = express();
 const port = 3000;

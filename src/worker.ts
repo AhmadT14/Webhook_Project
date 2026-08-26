@@ -5,23 +5,24 @@ import {
   Actions,
   convertDatesToISO,
 } from "./actions.js";
-import { returnQueuedjob, jobRetry, jobSent } from "./db/queries/jobs.js";
+import { claimNextJob, jobRetry, jobSent } from "./db/queries/jobs.js";
 import { getSubscriberById } from "./db/queries/subscribers.js";
+import { getPipelineById } from "./db/queries/pipelines.js";
 import { BadRequestError } from "./errors.js";
 import { subscriberForwarding } from "./subscriberForwarding.js";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function worker() {
-  let job;
   while (true) {
-    job = await returnQueuedjob();
+    const job = await claimNextJob();
     if (!job) {
       await sleep(1000);
       continue;
     }
+
     try {
-      const payload: Record<string, unknown> = job.payload;
+      const payload = job.payload;
       if (
         typeof payload !== "object" ||
         payload === null ||
@@ -29,19 +30,35 @@ export async function worker() {
       ) {
         throw new BadRequestError("Invalid Format");
       }
-      const subscriberId = job.subscriber_id;
-      const subscriber = await getSubscriberById(subscriberId!);
-      const processed_payload = await processing(payload, subscriber.action);
-      if (processed_payload) {
-        const response = await subscriberForwarding(
-          processed_payload,
-          subscriber,
-        );
-        if (response) {
-          await jobSent(processed_payload, job.id);
-        } else {
-          await jobRetry(processed_payload, job.id);
-        }
+
+      const subscriber = job.subscriber_id
+        ? await getSubscriberById(job.subscriber_id)
+        : undefined;
+      if (!subscriber) {
+        console.error(`Job ${job.id} has no valid subscriber`);
+        await jobRetry({}, job.id);
+        continue;
+      }
+
+      const pipeline = job.pipeline_id
+        ? await getPipelineById(job.pipeline_id)
+        : undefined;
+      if (!pipeline) {
+        console.error(`Job ${job.id} has no valid pipeline`);
+        await jobRetry({}, job.id);
+        continue;
+      }
+
+      const processed_payload = await processing(payload, pipeline.action);
+      const delivered = await subscriberForwarding(
+        processed_payload,
+        subscriber,
+      );
+
+      if (delivered) {
+        await jobSent(processed_payload, job.id);
+      } else {
+        await jobRetry(processed_payload, job.id);
       }
     } catch (error) {
       console.error(`Job ${job.id} error:`, error);

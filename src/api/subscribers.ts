@@ -8,7 +8,7 @@ import {
 } from "../db/queries/subscribers.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 const subscriberRouter = express.Router({ mergeParams: true });
 
@@ -58,35 +58,35 @@ subscriberRouter.get(
 subscriberRouter.post(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
-    const token = crypto.randomBytes(32).toString("hex");
+    const signingSecret = crypto.randomBytes(32).toString("hex");
 
     type SubscriberData = {
       name: string;
       pipeline_id: string;
       url: string;
       action: string;
-      auth_token: string;
+      signing_secret: string,
     };
     try {
       const pipelineId = Array.isArray(req.params.pipelineId)
         ? req.params.pipelineId[0]
         : req.params.pipelineId;
 
-      if (!req.body.name || !pipelineId || !req.body.url || req.body.action) {
+      if (!req.body.name || !pipelineId || !req.body.url) {
         throw new BadRequestError("Invalid Format");
       }
       const pipeline = await getPipelineById(pipelineId);
       if (!pipeline) {
         throw new NotFoundError("Pipeline not found");
       }
-      const SubscriberData: SubscriberData = {
+      const subscriberData: SubscriberData = {
         name: req.body.name,
         url: req.body.url,
         pipeline_id: pipelineId,
         action: req.body.action,
-        auth_token: token,
+        signing_secret: signingSecret,
       };
-      const subscriber = await createSubscriber(SubscriberData);
+      const subscriber = await createSubscriber(subscriberData);
       res.status(201).send(subscriber);
     } catch (err) {
       next(err);
