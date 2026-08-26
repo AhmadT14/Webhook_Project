@@ -15,6 +15,7 @@ export const pipelinesTable = pgTable("pipelines", {
   action: text("action").notNull(),
   created_at: timestamp().notNull().defaultNow(),
   signing_secret: text("signing_secret").notNull(),
+  rate_limit_per_min: integer("rate_limit_per_min").notNull().default(60),
 });
 
 export const jobsTable = pgTable(
@@ -74,4 +75,21 @@ export const deliveryAttemptsTable = pgTable("delivery_attempts", {
     jsonb("processed_payload").$type<Record<string, unknown>>(),
   attempt_at: timestamp().notNull().defaultNow(),
 });
+
+export const webhookRequestsTable = pgTable(
+  "webhook_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pipeline_id: uuid("pipeline_id")
+      .notNull()
+      .references(() => pipelinesTable.id, { onDelete: "cascade" }),
+    requested_at: timestamp().notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_webhook_requests_pipeline_time").on(
+      table.pipeline_id,
+      table.requested_at,
+    ),
+  ],
+);
 

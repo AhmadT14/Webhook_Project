@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import { createJobsForSubscribers } from "../db/queries/jobs.js";
-import { BadRequestError, NotFoundError } from "../errors.js";
+import { BadRequestError, NotFoundError, TooManyRequestsError } from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
 import { getSubscribersByPipelineId } from "../db/queries/subscribers.js";
 import { verifySignature } from "../middlewares/webhookSignitureValidation.js";
+import { checkAndRecordRequest } from "../db/queries/ratelimit.js";
 
 
 export async function webhookHandler(
@@ -28,8 +29,13 @@ export async function webhookHandler(
     if (!pipeline) {
       throw new NotFoundError("Pipeline not found");
     }
-    const signingSecret = pipeline.signing_secret;
 
+    const { allowed } = await checkAndRecordRequest(id, pipeline.rate_limit_per_min);
+    if (!allowed) {
+      throw new TooManyRequestsError("Rate limit exceeded for this pipeline");
+    }
+
+    const signingSecret = pipeline.signing_secret;
 
     const data = req.body;
     if (typeof data !== "object" || data === null || Array.isArray(data)) {

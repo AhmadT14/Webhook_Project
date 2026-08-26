@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError, UnAuthorized } from "../errors.js";
+import { BadRequestError, NotFoundError, TooManyRequestsError, UnAuthorized } from "../errors.js";
 import type { Request, Response, NextFunction } from "express";
 
 export function errorMiddleware(
@@ -19,7 +19,11 @@ export function errorMiddleware(
   } else if (err instanceof UnAuthorized) {
     statusCode = 401;
     message = err.message;
+  } else if (err instanceof TooManyRequestsError) {
+    statusCode = 429;
+    message = err.message;
   }
+
   if (statusCode >= 500) {
     console.log(err);
   }

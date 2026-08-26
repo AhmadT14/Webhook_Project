@@ -15,3 +15,9 @@ export class UnAuthorized extends Error {
     super(message);
   }
 }
+
+export class TooManyRequestsError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}

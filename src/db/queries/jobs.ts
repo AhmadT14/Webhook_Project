@@ -163,3 +163,17 @@ export async function jobAttemptsCount(jobId: string) {
     .where(eq(jobsTable.id, jobId));
   return result;
 }
+
+export async function requeueFailedJob(jobId: string) {
+  const [result] = await db
+    .update(jobsTable)
+    .set({
+      status: "queued",
+      next_attempt_at: sql`now()`,
+      locked_at: null,
+    })
+    .where(and(eq(jobsTable.id, jobId), eq(jobsTable.status, "failed")))
+    .returning();
+
+  return result;
+}

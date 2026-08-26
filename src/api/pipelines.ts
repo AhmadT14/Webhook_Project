@@ -54,6 +54,7 @@ pipelineRouter.post(
       name: string;
       action: string;
       signing_secret: string;
+      rate_limit_per_min?: number;
     };
     try {
       if (
@@ -65,10 +66,22 @@ pipelineRouter.post(
       if (!Actions.includes(req.body.action)) {
         throw new BadRequestError(`Invalid action: ${req.body.action}`);
       }
+
+      let rateLimit: number | undefined;
+      if (req.body.rate_limit_per_min !== undefined) {
+        rateLimit = Number(req.body.rate_limit_per_min);
+        if (!Number.isInteger(rateLimit) || rateLimit <= 0) {
+          throw new BadRequestError(
+            "rate_limit_per_min must be a positive integer",
+          );
+        }
+      }
+
       const pipelineData: PipelineData = {
         name: req.body.name,
         action: req.body.action,
         signing_secret: signingSecret,
+        ...(rateLimit !== undefined && { rate_limit_per_min: rateLimit }),
       };
       const pipeline = await createPipeline(pipelineData);
       res.status(201).send(pipeline);
@@ -88,8 +101,8 @@ pipelineRouter.put(
       if (!pipelineID) {
         throw new BadRequestError("Invalid Format");
       }
-      const { name, action } = req.body;
-      if (!name && !action) {
+      const { name, action, rate_limit_per_min } = req.body;
+      if (name === undefined && action === undefined && rate_limit_per_min === undefined) {
         throw new BadRequestError("Nothing to update");
       }
       if (name !== undefined && typeof name !== "string") {
@@ -103,11 +116,24 @@ pipelineRouter.put(
           throw new BadRequestError(`Invalid action: ${action}`);
         }
       }
+      let rateLimit: number | undefined;
+      if (rate_limit_per_min !== undefined) {
+        rateLimit = Number(rate_limit_per_min);
+        if (!Number.isInteger(rateLimit) || rateLimit <= 0) {
+          throw new BadRequestError(
+            "rate_limit_per_min must be a positive integer",
+          );
+        }
+      }
       const existing = await getPipelineById(pipelineID);
       if (!existing) {
         throw new NotFoundError("Pipeline not found");
       }
-      const updated = await updatePipelineById(pipelineID, { name, action });
+      const updated = await updatePipelineById(pipelineID, {
+        name,
+        action,
+        rate_limit_per_min: rateLimit,
+      });
       res.status(200).send(updated);
     } catch (err) {
       next(err);

@@ -1,5 +1,5 @@
 import { db } from "../index.js";
-import { eq } from "drizzle-orm";
+import { eq, InferInsertModel } from "drizzle-orm";
 import { pipelinesTable } from "../schema.js";
 
 export async function getAllPipelines() {
@@ -29,7 +29,7 @@ export async function deletePipelineById(id: string) {
 
 export async function updatePipelineById(
   id: string,
-  data: Partial<{ name: string; action: string }>,
+  data: Partial<Pick<InferInsertModel<typeof pipelinesTable>, "name" | "action" | "rate_limit_per_min">>,
 ) {
   const [result] = await db
     .update(pipelinesTable)

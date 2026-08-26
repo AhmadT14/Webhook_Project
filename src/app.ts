@@ -3,7 +3,7 @@ import "dotenv/config";
 import { pipelineRouter } from "./api/pipelines.js";
 import { subscriberRouter } from "./api/subscribers.js";
 import { jobsRouter } from "./api/jobs.js";
-import { webhookHandler } from "./api/webhookAPIHandle.js";
+import { webhookHandler } from "./api/webhookHandler.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { APIKeyValidation } from "./middlewares/APIKeyValidation.js";
 

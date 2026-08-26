@@ -4,7 +4,7 @@ import {
   getDeliveryAttemptsByJobId,
 } from "../db/queries/deliverAttempts.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
-import { getJobs, getJobsById } from "../db/queries/jobs.js";
+import { getJobs, getJobsById, requeueFailedJob } from "../db/queries/jobs.js";
 
 export const jobsRouter = express.Router();
 
@@ -35,6 +35,39 @@ jobsRouter.get(
         throw new NotFoundError("Delivery Attempts Not Found!");
       }
       res.status(200).send(deliveryAttempt);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+jobsRouter.post(
+  "/:jobId/retry",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const jobID = Array.isArray(req.params.jobId)
+        ? req.params.jobId[0]
+        : req.params.jobId;
+      if (!jobID) {
+        throw new BadRequestError("Invalid Format");
+      }
+
+      const existing = await getJobsById(jobID);
+      if (!existing) {
+        throw new NotFoundError("Job Not Found!");
+      }
+      if (existing.status !== "failed") {
+        throw new BadRequestError(
+          `Only failed jobs can be retried, current status: ${existing.status}`,
+        );
+      }
+
+      const job = await requeueFailedJob(jobID);
+      if (!job) {
+        throw new BadRequestError("Job is no longer in a failed state");
+      }
+
+      res.status(200).send(job);
     } catch (err) {
       next(err);
     }
