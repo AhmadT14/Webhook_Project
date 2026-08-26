@@ -64,7 +64,6 @@ subscriberRouter.post(
       name: string;
       pipeline_id: string;
       url: string;
-      action: string;
       signing_secret: string,
     };
     try {
@@ -83,7 +82,6 @@ subscriberRouter.post(
         name: req.body.name,
         url: req.body.url,
         pipeline_id: pipelineId,
-        action: req.body.action,
         signing_secret: signingSecret,
       };
       const subscriber = await createSubscriber(subscriberData);
