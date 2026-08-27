@@ -29,15 +29,15 @@ function convertDatesToISOValues(
   return result;
 }
 
-export async function convertDatesToISO(
+export function convertDatesToISO(
   payload: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Record<string, unknown> {
   return convertDatesToISOValues(payload);
 }
 
-export async function addEventId(
+export function addEventId(
   payload: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Record<string, unknown> {
   return {
     ...payload,
     event_id: randomUUID(),
@@ -71,8 +71,8 @@ function redactObject(obj: Record<string, unknown>): Record<string, unknown> {
   return result;
 }
 
-export async function redact(
+export function redact(
   payload: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Record<string, unknown> {
   return redactObject(payload);
 }

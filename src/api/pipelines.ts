@@ -8,9 +8,26 @@ import {
 } from "../db/queries/pipelines.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { Actions } from "../actions.js";
-import crypto from "node:crypto"
+import crypto from "node:crypto";
 
 const pipelineRouter = express.Router();
+
+function parseActions(body: {
+  actions?: unknown;
+}): string[] | undefined {
+  if (body.actions !== undefined) {
+    if (!Array.isArray(body.actions) || body.actions.length === 0) {
+      throw new BadRequestError("actions must be a non-empty array");
+    }
+    for (const action of body.actions) {
+      if (typeof action !== "string" || !Actions.includes(action)) {
+        throw new BadRequestError(`Invalid action: ${String(action)}`);
+      }
+    }
+    return body.actions as string[];
+  }
+  return undefined;
+}
 
 pipelineRouter.get(
   "/",
@@ -50,21 +67,13 @@ pipelineRouter.post(
   async (req: Request, res: Response, next: NextFunction) => {
     const signingSecret = crypto.randomBytes(32).toString("hex");
 
-    type PipelineData = {
-      name: string;
-      action: string;
-      signing_secret: string;
-      rate_limit_per_min?: number;
-    };
     try {
-      if (
-        typeof req.body.name !== "string" ||
-        typeof req.body.action !== "string"
-      ) {
+      if (typeof req.body.name !== "string") {
         throw new BadRequestError("Invalid Format");
       }
-      if (!Actions.includes(req.body.action)) {
-        throw new BadRequestError(`Invalid action: ${req.body.action}`);
+      const actions = parseActions(req.body);
+      if (!actions) {
+        throw new BadRequestError("Invalid Format");
       }
 
       let rateLimit: number | undefined;
@@ -77,13 +86,12 @@ pipelineRouter.post(
         }
       }
 
-      const pipelineData: PipelineData = {
+      const pipeline = await createPipeline({
         name: req.body.name,
-        action: req.body.action,
+        actions,
         signing_secret: signingSecret,
         ...(rateLimit !== undefined && { rate_limit_per_min: rateLimit }),
-      };
-      const pipeline = await createPipeline(pipelineData);
+      });
       res.status(201).send(pipeline);
     } catch (err) {
       next(err);
@@ -101,21 +109,18 @@ pipelineRouter.put(
       if (!pipelineID) {
         throw new BadRequestError("Invalid Format");
       }
-      const { name, action, rate_limit_per_min } = req.body;
-      if (name === undefined && action === undefined && rate_limit_per_min === undefined) {
+      const { name, actions, rate_limit_per_min } = req.body;
+      if (
+        name === undefined &&
+        actions === undefined &&
+        rate_limit_per_min === undefined
+      ) {
         throw new BadRequestError("Nothing to update");
       }
       if (name !== undefined && typeof name !== "string") {
         throw new BadRequestError("Invalid Format");
       }
-      if (action !== undefined) {
-        if (typeof action !== "string") {
-          throw new BadRequestError("Invalid Format");
-        }
-        if (!Actions.includes(action)) {
-          throw new BadRequestError(`Invalid action: ${action}`);
-        }
-      }
+      const parsedActions = parseActions(req.body);
       let rateLimit: number | undefined;
       if (rate_limit_per_min !== undefined) {
         rateLimit = Number(rate_limit_per_min);
@@ -131,7 +136,7 @@ pipelineRouter.put(
       }
       const updated = await updatePipelineById(pipelineID, {
         name,
-        action,
+        ...(parsedActions !== undefined && { actions: parsedActions }),
         rate_limit_per_min: rateLimit,
       });
       res.status(200).send(updated);

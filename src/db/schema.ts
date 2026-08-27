@@ -12,7 +12,7 @@ import {
 export const pipelinesTable = pgTable("pipelines", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  action: text("action").notNull(),
+  actions: text("actions").array().notNull(),
   created_at: timestamp().notNull().defaultNow(),
   signing_secret: text("signing_secret").notNull(),
   rate_limit_per_min: integer("rate_limit_per_min").notNull().default(60),
@@ -92,4 +92,3 @@ export const webhookRequestsTable = pgTable(
     ),
   ],
 );
-

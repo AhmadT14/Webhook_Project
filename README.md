@@ -7,7 +7,7 @@ A simplified Zapier-like webhook processing service built with TypeScript, Postg
 This service lets users create pipelines where:
 
 1. A unique source webhook URL receives events.
-2. A processing action transforms the payload.
+2. An ordered list of processing actions transforms the payload.
 3. The transformed payload is delivered to one or more subscriber URLs.
 
 Incoming webhooks are not processed synchronously. They are queued as jobs and processed by a background worker.
@@ -112,7 +112,7 @@ This project uses [Drizzle ORM](https://orm.drizzle.team/) for type-safe SQL que
 3. API verifies `X-Webhook-Signature` against the pipeline's `signing_secret`; invalid or missing signatures get `400`.
 4. API creates one job per subscriber, each with `status = queued` and `next_attempt_at = now()`.
 5. Worker claims a due, queued job using `SELECT ... FOR UPDATE SKIP LOCKED`, so multiple worker instances never process the same job twice, then marks it `processing`.
-6. Worker runs the pipeline's action against the payload.
+6. Worker runs the pipeline's actions in order against the payload, passing each step's result into the next.
 7. Worker signs the result and delivers it to the job's subscriber.
 8. Delivery attempts are recorded in `delivery_attempts`, success (`sent`) or failure (`failed`).
 9. On success: job status -> `completed`.
@@ -127,7 +127,7 @@ Current supported actions:
 - `add_event_id`: enriches payload with `event_id` (UUID)
 - `redact`: replaces sensitive-key fields (password, token, secret, key, authorization, auth) with `[REDACTED]`
 
-Each pipeline runs exactly one action against every event it receives. Subscribers do not have their own action, they only define where the pipeline's result gets delivered. Subscriber URLs are unique per pipeline (`pipeline_id` + `url`).
+Each pipeline runs an ordered list of actions against every event it receives. The output of one action is the input of the next; for example `["redact", "add_event_id"]` redacts sensitive fields, then stamps an `event_id` on the result. A single action is still valid (`["redact"]`, or the `action` alias on create/update). Subscribers do not have their own actions, they only define where the pipeline's result gets delivered. Subscriber URLs are unique per pipeline (`pipeline_id` + `url`).
 
 ## Reliability
 
@@ -189,12 +189,12 @@ Example create payload:
 ```json
 {
   "name": "Redact Pipeline",
-  "action": "redact",
+  "actions": ["redact", "add_event_id"],
   "rate_limit_per_min": 60
 }
 ```
 
-`rate_limit_per_min` is optional on create and update, and defaults to 60. The create response includes the pipeline's `signing_secret`. Save it and use it to sign every webhook sent to this pipeline.
+`actions` is a non-empty ordered list of supported action names. For a one-step pipeline you can still send `"action": "redact"` instead of `"actions": ["redact"]`. `rate_limit_per_min` is optional on create and update, and defaults to 60. The create response includes the pipeline's `signing_secret`. Save it and use it to sign every webhook sent to this pipeline.
 
 ### Subscribers (scoped to pipeline)
 
@@ -269,7 +269,7 @@ The easiest way to see the full loop without standing up your own receiving serv
 curl -X POST http://localhost:3000/api/pipelines \
   -H "Content-Type: application/json" \
   -H "X-API-Key: dev-admin-key" \
-  -d '{"name": "Redact Pipeline", "action": "redact"}'
+  -d '{"name": "Redact Pipeline", "actions": ["redact", "add_event_id"]}'
 ```
 
 Save the `id` and `signing_secret` from the response.
@@ -291,7 +291,8 @@ Webhooks must be signed. Compute the signature with the pipeline's `signing_secr
 const crypto = require("crypto");
 const secret = "<PIPELINE_SIGNING_SECRET>";
 const body = JSON.stringify({ user: "ahmad", password: "123456" });
-const signature = "sha256=" + crypto.createHmac("sha256", secret).update(body).digest("hex");
+const signature =
+  "sha256=" + crypto.createHmac("sha256", secret).update(body).digest("hex");
 console.log(signature);
 ```
 
@@ -330,7 +331,7 @@ Runs on push to `main`:
 ## Design Decisions
 
 - **Async processing over sync:** the webhook endpoint only validates, rate-limits, and enqueues jobs, so inbound requests stay fast and resilient even if a subscriber is slow or down.
-- **Action lives on the pipeline, not the subscriber:** a pipeline runs exactly one action against every event; subscribers only define delivery destinations. This keeps "what happens to the data" and "where it goes" as separate, single-purpose concerns.
+- **Actions live on the pipeline, not the subscriber:** a pipeline runs an ordered list of actions against every event; subscribers only define delivery destinations. This keeps "what happens to the data" and "where it goes" as separate, single-purpose concerns.
 - **Concurrency-safe job claiming:** `FOR UPDATE SKIP LOCKED` was chosen over a naive `SELECT` + `UPDATE` so the worker can safely scale to multiple replicas without a distributed lock or extra infrastructure like Redis.
 - **Exponential backoff over fixed-delay retry:** spaces out retries against a failing subscriber instead of hammering it every polling cycle, while still recovering quickly from brief blips.
 - **Postgres-backed rate limiting:** kept the project on a single datastore rather than adding Redis, at the cost of a small amount of extra write load per webhook request. A sliding window (not a fixed bucket) avoids the double-burst bug fixed-window limiters have at minute boundaries.

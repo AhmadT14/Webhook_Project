@@ -15,7 +15,12 @@ export async function getPipelineById(id: string) {
   return result;
 }
 
-export async function createPipeline(data: { name: string; action: string, signing_secret: string }) {
+export async function createPipeline(data: {
+  name: string;
+  actions: string[];
+  signing_secret: string;
+  rate_limit_per_min?: number;
+}) {
   const [result] = await db.insert(pipelinesTable).values(data).returning();
   return result;
 }
@@ -29,7 +34,12 @@ export async function deletePipelineById(id: string) {
 
 export async function updatePipelineById(
   id: string,
-  data: Partial<Pick<InferInsertModel<typeof pipelinesTable>, "name" | "action" | "rate_limit_per_min">>,
+  data: Partial<
+    Pick<
+      InferInsertModel<typeof pipelinesTable>,
+      "name" | "actions" | "rate_limit_per_min"
+    >
+  >,
 ) {
   const [result] = await db
     .update(pipelinesTable)

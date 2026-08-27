@@ -8,7 +8,7 @@ import {
 } from "../db/queries/subscribers.js";
 import { BadRequestError, NotFoundError } from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
-import crypto from "node:crypto"
+import crypto from "node:crypto";
 
 const subscriberRouter = express.Router({ mergeParams: true });
 
@@ -64,7 +64,7 @@ subscriberRouter.post(
       name: string;
       pipeline_id: string;
       url: string;
-      signing_secret: string,
+      signing_secret: string;
     };
     try {
       const pipelineId = Array.isArray(req.params.pipelineId)

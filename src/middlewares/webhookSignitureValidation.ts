@@ -1,29 +1,23 @@
 import crypto from "node:crypto";
 import "dotenv/config";
 
-export function generateSignature(
-    payload: string,
-    secret: string,
-): string {
-    return crypto
-        .createHmac("sha256", secret)
-        .update(payload)
-        .digest("hex");
+export function generateSignature(payload: string, secret: string): string {
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
 export function verifySignature(
-    payload: string,
-    receivedSignature: string,
-    secret: string,
+  payload: string,
+  receivedSignature: string,
+  secret: string,
 ): boolean {
-    const expectedSignature = generateSignature(payload, secret);
+  const expectedSignature = generateSignature(payload, secret);
 
-    const received = Buffer.from(receivedSignature, "utf8");
-    const expected = Buffer.from(expectedSignature, "utf8");
+  const received = Buffer.from(receivedSignature, "utf8");
+  const expected = Buffer.from(expectedSignature, "utf8");
 
-    if (received.length !== expected.length) {
-        return false;
-    }
+  if (received.length !== expected.length) {
+    return false;
+  }
 
-    return crypto.timingSafeEqual(received, expected);
+  return crypto.timingSafeEqual(received, expected);
 }

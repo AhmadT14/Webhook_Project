@@ -1,10 +1,4 @@
-import {
-  ActionsResultPayload,
-  addEventId,
-  redact,
-  Actions,
-  convertDatesToISO,
-} from "./actions.js";
+import { addEventId, redact, Actions, convertDatesToISO } from "./actions.js";
 import { claimNextJob, jobRetry, jobSent } from "./db/queries/jobs.js";
 import { getSubscriberById } from "./db/queries/subscribers.js";
 import { getPipelineById } from "./db/queries/pipelines.js";
@@ -49,7 +43,7 @@ export async function worker() {
         continue;
       }
 
-      const processed_payload = await processing(payload, pipeline.action);
+      const processed_payload = processing(payload, pipeline.actions ?? []);
       const delivered = await subscriberForwarding(
         processed_payload,
         subscriber,
@@ -67,21 +61,32 @@ export async function worker() {
   }
 }
 
-export async function processing(
+export function processing(
   payload: Record<string, unknown>,
-  action: string,
-): Promise<ActionsResultPayload> {
-  if (!Actions.includes(action)) {
-    throw new BadRequestError(`Invalid action: ${action}`);
+  actions: string[],
+): Record<string, unknown> {
+  if (actions.length === 0) {
+    throw new BadRequestError("Invalid action: pipeline has no actions");
   }
-  switch (action) {
-    case "convertDatesToISO":
-      return convertDatesToISO(payload);
-    case "add_event_id":
-      return addEventId(payload);
-    case "redact":
-      return redact(payload);
-    default:
+
+  let processedPayload = payload;
+  for (const action of actions) {
+    if (!Actions.includes(action)) {
       throw new BadRequestError(`Invalid action: ${action}`);
+    }
+    switch (action) {
+      case "convertDatesToISO":
+        processedPayload = convertDatesToISO(processedPayload);
+        break;
+      case "add_event_id":
+        processedPayload = addEventId(processedPayload);
+        break;
+      case "redact":
+        processedPayload = redact(processedPayload);
+        break;
+      default:
+        throw new BadRequestError(`Invalid action: ${action}`);
+    }
   }
+  return processedPayload;
 }

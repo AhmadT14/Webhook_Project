@@ -1,19 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import { createJobsForSubscribers } from "../db/queries/jobs.js";
-import { BadRequestError, NotFoundError, TooManyRequestsError } from "../errors.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  TooManyRequestsError,
+} from "../errors.js";
 import { getPipelineById } from "../db/queries/pipelines.js";
 import { getSubscribersByPipelineId } from "../db/queries/subscribers.js";
 import { verifySignature } from "../middlewares/webhookSignitureValidation.js";
 import { checkAndRecordRequest } from "../db/queries/ratelimit.js";
-
 
 export async function webhookHandler(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-
   try {
     const id = Array.isArray(req.params.pipelineId)
       ? req.params.pipelineId[0]
@@ -30,7 +32,10 @@ export async function webhookHandler(
       throw new NotFoundError("Pipeline not found");
     }
 
-    const { allowed } = await checkAndRecordRequest(id, pipeline.rate_limit_per_min);
+    const { allowed } = await checkAndRecordRequest(
+      id,
+      pipeline.rate_limit_per_min,
+    );
     if (!allowed) {
       throw new TooManyRequestsError("Rate limit exceeded for this pipeline");
     }
@@ -51,7 +56,11 @@ export async function webhookHandler(
       throw new Error("WEBHOOK_SIGNING_SECRET is not configured");
     }
 
-    const valid = verifySignature(JSON.stringify(data), signature, signingSecret);
+    const valid = verifySignature(
+      JSON.stringify(data),
+      signature,
+      signingSecret,
+    );
     if (!valid) {
       throw new BadRequestError("Invalid webhook signature");
     }
